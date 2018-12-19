@@ -1,1 +1,3 @@
-# FF2_boss_selection
+# FF2 보스 선택 플러그인
+
+다시 쓰는 중.
