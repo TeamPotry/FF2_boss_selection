@@ -6,11 +6,7 @@
 #include <ff2_potry>
 #include <clientprefs>
 
-#undef REQUIRE_PLUGIN
-#include <serverside_achievement>
-#define REQUIRE_PLUGIN
-
-#define PLUGIN_VERSION "2(1.0)"
+#define PLUGIN_VERSION "v2+1.001"
 #define MAX_NAME 64
 
 int g_iChatCommand;
@@ -180,27 +176,6 @@ public void OnPluginStart()
 
 	ChangeChatCommand();
 }
-
-/*
-public void SA_OnLoadedAchievements()
-{
-	KeyValues BossKV;
-	char achievementId[80];
-	int maxProcessInteger;
-
-	for (int i = 0; (BossKV = FF2_GetCharacterKV(i)) != null; i++)
-	{
-		BossKV.Rewind();
-
-		if((maxProcessInteger = BossKV.GetNum("challenge_hp")) > 0)
-		{
-			BossKV.GetString("filename", achievementId, sizeof(achievementId), "");
-			Format(achievementId, sizeof(achievementId), "ff2_boss_%s", achievementId);
-			SA_CreateTemporaryAchievement(achievementId, maxProcessInteger);
-		}
-	}
-}
-*/
 
 public Action Listener_Say(int client, const char[] command, int argc)
 {
