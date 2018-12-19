@@ -6,10 +6,6 @@
 #include <ff2_potry>
 #include <clientprefs>
 
-#undef REQUIRE_PLUGIN
-#include <serverside_achievement>
-#define REQUIRE_PLUGIN
-
 #define PLUGIN_VERSION "2(1.0)"
 #define MAX_NAME 64
 
