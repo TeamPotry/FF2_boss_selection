@@ -507,7 +507,11 @@ stock int FindBossIndexByName(const char[] bossName)
 
 KeyValues GetCharacterKVEx(int bossIndex)
 {
-	return FF2Version[0] == 2 ? FF2_GetCharacterKV(bossIndex) : view_as<KeyValues>(FF2_GetSpecialKV(bossIndex, true));
+	#if !defined _ff2_potry_included
+		return view_as<KeyValues>(FF2_GetSpecialKV(bossIndex, true));
+	#else
+		return FF2_GetCharacterKV(bossIndex);
+	#endif
 }
 
 public void GetCharacterName(KeyValues characterKv, char[] bossName, int size, const int client)
