@@ -24,6 +24,9 @@ before_script:
 script:
     - ./compile.sh boss_selection.sp
 
+    - wget "https://raw.githubusercontent.com/50DKP/FF2-Official/master/addons/sourcemod/scripting/include/freak_fortress_2.inc" -O include/freak_fortress_2.inc
+    - ./compile.sh boss_selection.sp
+
 # Notifications
 notifications:
     email: false
