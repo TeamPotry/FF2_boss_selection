@@ -157,10 +157,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
 {
 	OnCheckSelectRules = CreateGlobalForward("FF2_OnCheckSelectRules", ET_Hook, Param_Cell, Param_Cell, Param_String, Param_String); // Client, characterIndex, Rule String, value;
 
-	#if defined _ff2_potry_included
-		MarkNativeAsOptional("FF2_GetSpecialKV");
-	#endif
-
+	MarkNativeAsOptional("FF2_GetSpecialKV");
 	return APLRes_Success;
 }
 
