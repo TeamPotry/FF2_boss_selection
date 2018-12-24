@@ -12,6 +12,7 @@
 #define MAX_NAME 64
 
 int g_iChatCommand;
+int FF2Version[3];
 
 char g_strCurrentCharacter[64];
 char Incoming[MAXPLAYERS+1][64];
@@ -160,11 +161,14 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
 
 public void OnPluginStart()
 {
-	int version[3];
-	FF2_GetFF2Version(version);
-	if(version[0]<2)
+	FF2_GetFF2Version(FF2Version);
+	if(FF2Version[0] == 2)
 	{
-		SetFailState("This version of FF2 Boss Selection requires at least FF2 v2.0.0!");
+		#if !defined _ff2_potry_included
+			SetFailState("FF2 v2.0.0 is need ff2_potry.inc!");
+		#endif
+
+		MarkNativeAsOptional("FF2_GetSpecialKV");
 	}
 
 	g_hCvarChatCommand = CreateConVar("ff2_bossselection_chatcommand", "ff2boss,boss,보스,보스선택");
@@ -288,7 +292,7 @@ public Action Command_SetMyBoss(int client, int args)
 	char menutext[MAX_NAME*2], bossName[MAX_NAME];
 	KeyValues BossKV;
 	Handle dMenu = CreateMenu(Command_SetMyBossH);
-	BossKV = FF2_GetCharacterKV(FF2BossCookie.GetSavedIncomeIndex(client));
+	BossKV = GetCharacterKVEx(FF2BossCookie.GetSavedIncomeIndex(client));
 
 	SetGlobalTransTarget(client);
 
@@ -322,7 +326,7 @@ public Action Command_SetMyBoss(int client, int args)
 	bool checked = true;
 	Action action;
 
-	for (int i = 0; (BossKV = FF2_GetCharacterKV(i)) != null; i++)
+	for (int i = 0; (BossKV = GetCharacterKVEx(i)) != null; i++)
 	{
 		itemflags = 0;
 		checked = true;
@@ -411,7 +415,7 @@ public Command_SetMyBossH(Handle menu, MenuAction action, int client, int item)
 				{
 					GetMenuItem(menu, item, text, sizeof(text));
 					int bossIndex = StringToInt(text);
-					KeyValues BossKV = FF2_GetCharacterKV(bossIndex);
+					KeyValues BossKV = GetCharacterKVEx(bossIndex);
 					GetCharacterName(BossKV, Incoming[client], MAX_NAME, 0);
 					GetCharacterName(BossKV, text, MAX_NAME, client);
 
@@ -424,8 +428,11 @@ public Command_SetMyBossH(Handle menu, MenuAction action, int client, int item)
 		}
 	}
 }
-
-public Action FF2_OnBossSelected(int boss, int& character, char[] characterName, bool preset)
+#if !defined _ff2_potry_included
+	public Action FF2_OnSpecialSelected(int boss, int& character, char[] characterName, bool preset)
+#else
+	public Action FF2_OnBossSelected(int boss, int& character, char[] characterName, bool preset)
+#endif
 {
 	if(preset) return Plugin_Continue;
 
@@ -480,13 +487,18 @@ stock int FindBossIndexByName(const char[] bossName)
 {
 	char name[64];
 	KeyValues BossKV;
-	for (int loop = 0; (BossKV = FF2_GetCharacterKV(loop)) != null; loop++)
+	for (int loop = 0; (BossKV = GetCharacterKVEx(loop)) != null; loop++)
 	{
 		GetCharacterName(BossKV, name, 64, 0);
 		if(StrEqual(name, bossName)) return loop;
 	}
 
 	return -1;
+}
+
+KeyValues GetCharacterKVEx(int bossIndex)
+{
+	return FF2Version[0] == 2 ? FF2_GetCharacterKV(bossIndex) : view_as<KeyValues>(FF2_GetSpecialKV(bossIndex, true));
 }
 
 public void GetCharacterName(KeyValues characterKv, char[] bossName, int size, const int client)
