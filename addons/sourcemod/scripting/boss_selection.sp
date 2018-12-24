@@ -217,8 +217,11 @@ public Action Listener_Say(int client, const char[] command, int argc)
 
 	return Plugin_Continue;
 }
-
-public Action FF2_OnLoadCharacterSet(char[] characterSet)
+#if !defined _ff2_potry_included
+	public Action FF2_OnLoadCharacterSet(int &charSetNum, char[] characterSet)
+#else
+	public Action FF2_OnLoadCharacterSet(char[] characterSet)
+#endif
 {
 	strcopy(g_strCurrentCharacter, sizeof(g_strCurrentCharacter), characterSet);
 	return Plugin_Continue;
@@ -431,8 +434,9 @@ public Command_SetMyBossH(Handle menu, MenuAction action, int client, int item)
 		}
 	}
 }
+
 #if !defined _ff2_potry_included
-	public Action FF2_OnSpecialSelected(int boss, int &character, char[] characterName, bool preset);
+	public Action FF2_OnSpecialSelected(int boss, int &character, char[] characterName, bool preset)
 #else
 	public Action FF2_OnBossSelected(int boss, int &character, char[] characterName, bool preset)
 #endif
@@ -440,7 +444,7 @@ public Command_SetMyBossH(Handle menu, MenuAction action, int client, int item)
 	if(preset) return Plugin_Continue;
 
 	new client = GetClientOfUserId(FF2_GetBossUserId(boss));
-	Handle BossKv = FF2_GetBossKV(boss);
+	Handle BossKv = GetCharacterKVEx(boss);
 	if (!boss && !StrEqual(Incoming[client], ""))
 	{
 		if(BossKv != INVALID_HANDLE)
