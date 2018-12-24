@@ -156,6 +156,11 @@ methodmap FF2BossCookie {
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
 {
 	OnCheckSelectRules = CreateGlobalForward("FF2_OnCheckSelectRules", ET_Hook, Param_Cell, Param_Cell, Param_String, Param_String); // Client, characterIndex, Rule String, value;
+
+	#if defined _ff2_potry_included
+		MarkNativeAsOptional("FF2_GetSpecialKV");
+	#endif
+
 	return APLRes_Success;
 }
 
@@ -167,8 +172,6 @@ public void OnPluginStart()
 		#if !defined _ff2_potry_included
 			SetFailState("FF2 v2.0.0 is need ff2_potry.inc!");
 		#endif
-
-		MarkNativeAsOptional("FF2_GetSpecialKV");
 	}
 
 	g_hCvarChatCommand = CreateConVar("ff2_bossselection_chatcommand", "ff2boss,boss,보스,보스선택");
@@ -429,9 +432,9 @@ public Command_SetMyBossH(Handle menu, MenuAction action, int client, int item)
 	}
 }
 #if !defined _ff2_potry_included
-	public Action FF2_OnSpecialSelected(int boss, int& character, char[] characterName, bool preset)
+	public Action FF2_OnSpecialSelected(int boss, int &character, char[] characterName, bool preset);
 #else
-	public Action FF2_OnBossSelected(int boss, int& character, char[] characterName, bool preset)
+	public Action FF2_OnBossSelected(int boss, int &character, char[] characterName, bool preset)
 #endif
 {
 	if(preset) return Plugin_Continue;
