@@ -2,9 +2,11 @@
 
 #include <sourcemod>
 #include <tf2_stocks>
+#include <clientprefs>
+///
 #include <freak_fortress_2>
 #tryinclude <ff2_potry>
-#include <clientprefs>
+///
 
 #define PLUGIN_VERSION "v2+1.001"
 #define MAX_NAME 64
