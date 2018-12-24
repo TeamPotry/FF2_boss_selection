@@ -218,14 +218,19 @@ public Action Listener_Say(int client, const char[] command, int argc)
 	return Plugin_Continue;
 }
 #if !defined _ff2_potry_included
-	public Action FF2_OnLoadCharacterSet(int &charSetNum, char[] characterSet)
+	public Action FF2_OnLoadCharacterSet(int &charSetNum, char[] charSetName)
+	{
+		strcopy(g_strCurrentCharacter, sizeof(g_strCurrentCharacter), charSetName);
+		return Plugin_Continue;
+	}
 #else
 	public Action FF2_OnLoadCharacterSet(char[] characterSet)
+	{
+		strcopy(g_strCurrentCharacter, sizeof(g_strCurrentCharacter), characterSet);
+		return Plugin_Continue;
+	}
 #endif
-{
-	strcopy(g_strCurrentCharacter, sizeof(g_strCurrentCharacter), characterSet);
-	return Plugin_Continue;
-}
+
 
 public Action FF2_OnAddQueuePoints(int add_points[MAXPLAYERS+1])
 {
