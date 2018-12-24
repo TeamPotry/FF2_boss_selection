@@ -3,7 +3,7 @@
 #include <sourcemod>
 #include <tf2_stocks>
 #include <freak_fortress_2>
-#include <ff2_potry>
+#tryinclude <ff2_potry>
 #include <clientprefs>
 
 #define PLUGIN_VERSION "2(1.0)"
