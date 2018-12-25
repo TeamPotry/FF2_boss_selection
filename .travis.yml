@@ -42,7 +42,6 @@ before_deploy:
 deploy:
     provider: releases
     api_key: $GITHUB_TOKEN
-    all_branches: true
     file:
         - ff2_boss_selection.zip
         - ff2_boss_selection.tar.gz
@@ -51,6 +50,7 @@ deploy:
     skip_cleanup: true
     on:
         repo: TeamPotry/FF2_boss_selection
+        all_branches: true
         tags: false
 
 # Notifications
