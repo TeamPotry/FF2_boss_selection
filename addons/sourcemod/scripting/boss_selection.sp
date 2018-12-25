@@ -258,6 +258,7 @@ public Action FF2_OnCheckSelectRules(int client, int characterIndex, const char[
 	int integerValue = StringToInt(value);
 	// CPrintToChatAll("%s: %s, %d", ruleName, value, integerValue);
 
+	/*
 	if(StrEqual(ruleName, "admin")) // FIXME: Not Working.
 	{
 		AdminId adminId = GetUserAdmin(client);
@@ -269,6 +270,7 @@ public Action FF2_OnCheckSelectRules(int client, int characterIndex, const char[
 		}
 		return Plugin_Handled;
 	}
+	*/
 	if(StrEqual(ruleName, "blocked"))	return Plugin_Handled;
 
 	return Plugin_Continue;
