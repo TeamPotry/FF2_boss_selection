@@ -22,6 +22,7 @@ before_script:
     - chmod +x spcomp
 script:
     - ./compile.sh boss_selection.sp
+    - mkdir compiled/1.0
     - mv compiled/boss_selection.smx compiled/1.0/boss_selection.smx
 
     - wget "https://raw.githubusercontent.com/TeamPotry/FF2_Fork/2.2/sourcemod/scripting/include/ff2_potry.inc" -O include/ff2_potry.inc
@@ -49,7 +50,7 @@ deploy:
     skip_cleanup: true
     on:
         repo: TeamPotry/FF2_boss_selection
-        tags: true
+        tags: false
 
 # Notifications
 notifications:
