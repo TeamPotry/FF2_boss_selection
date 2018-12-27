@@ -7,6 +7,7 @@
 #include <freak_fortress_2>
 #tryinclude <ff2_potry>
 ///
+#include <ff2_boss_selection>
 
 #define PLUGIN_VERSION "2(1.0)"
 #define MAX_NAME 64
