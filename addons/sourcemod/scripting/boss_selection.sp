@@ -313,8 +313,10 @@ void ResetRotationArray(char[] characterSet)
 			else
 			{
 				ratio = RotationInfo.GetNum("ratio", 1);
-				for(int i = 0; i < ratio; i++)
+				for(int i = 0; i < ratio; i++) {
+					LogMessage("Added %d", loop);
 					tempArray.Push(loop);
+				}
 
 				RotationIndexArray.Set(loop, false);
 			}
@@ -326,7 +328,7 @@ void ResetRotationArray(char[] characterSet)
 		int random, index;
 		for(int loop = 0; loop < count; loop++)
 		{
-			random = tempArray.Get(GetRandomInt(0, tempArray.Length));
+			random = tempArray.Get(GetRandomInt(0, tempArray.Length-1));
 			RotationIndexArray.Set(random, true);
 
 			while((index = tempArray.FindValue(random)) != -1)
@@ -498,9 +500,10 @@ public Action Command_SetMyBoss(int client, int args)
 			Format(menutext, sizeof(menutext), "%s (%t)", bossName, "FF2Boss Cant Chosse This Map");
 			itemflags |= ITEMDRAW_DISABLED;
 		}
-		else if(RotationIndexArray != null)
+		else if(RotationIndexArray != null && !RotationIndexArray.Get(i))
 		{
 			Format(menutext, sizeof(menutext), "%s (%t)", bossName, "FF2Boss Cant Chosse This Now");
+			itemflags |= ITEMDRAW_DISABLED;
 		}
 		else
 		{
