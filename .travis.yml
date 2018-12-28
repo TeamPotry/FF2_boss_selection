@@ -33,10 +33,12 @@ script:
 # Releases
 before_deploy:
     - cd ../
-    - mkdir ff2_boss_selection ff2_boss_selection/addons ff2_boss_selection/addons/sourcemod ff2_boss_selection/addons/sourcemod/scripting ff2_boss_selection/addons/sourcemod/scripting/include ff2_boss_selection/addons/sourcemod/translations
+    - mkdir ff2_boss_selection ff2_boss_selection/addons ff2_boss_selection/addons/sourcemod ff2_boss_selection/addons/sourcemod/data ff2_boss_selection/addons/sourcemod/scripting ff2_boss_selection/addons/sourcemod/scripting/include ff2_boss_selection/addons/sourcemod/translations
+    - mv data/ff2_boss_selection.cfg ff2_boss_selection/addons/sourcemod/data/
     - mv scripting/boss_selection.sp ff2_boss_selection/addons/sourcemod/scripting/
     - mv scripting/compiled ff2_boss_selection/addons/sourcemod/plugins
     - mv translations/ff2_boss_selection.txt ff2_boss_selection/addons/sourcemod/translations/
+    - mv translations/ko/ff2_boss_selection.txt ff2_boss_selection/addons/sourcemod/translations/ko/
     - zip -rq ff2_boss_selection ff2_boss_selection
     - tar -czf ff2_boss_selection.tar.gz ff2_boss_selection
 deploy:
