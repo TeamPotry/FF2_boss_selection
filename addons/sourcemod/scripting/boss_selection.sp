@@ -193,6 +193,8 @@ public void OnPluginStart()
 
 public void OnMapStart()
 {
+	ChangeChatCommand();
+
 	if(RotationInfo != null)
 		delete RotationInfo;
 	RotationInfo = GetRotationInfo();
@@ -273,7 +275,6 @@ void ResetRotationArray(char[] characterSet)
 
 	char characterName[64];
 	KeyValues BossKV;
-	bool result;
 	int count, bossCount, ratio;
 
 	RotationInfo.Rewind();
@@ -298,7 +299,7 @@ void ResetRotationArray(char[] characterSet)
 			BossKV.GetString("filename", characterName, sizeof(characterName));
 			LogMessage("characterName = %s", characterName);
 
-			RotationInfo.JumpToKey(characterName, true)
+			RotationInfo.JumpToKey(characterName, true);
 
 			if(RotationInfo.GetNum("banned", 0) > 0)
 			{
@@ -595,11 +596,6 @@ public Command_SetMyBossH(Handle menu, MenuAction action, int client, int item)
 }
 
 public void Cvar_ChatCommand_Changed(ConVar cvar, const char[] oldValue, const char[] newValue)
-{
-	ChangeChatCommand();
-}
-
-public void OnMapStart()
 {
 	ChangeChatCommand();
 }
