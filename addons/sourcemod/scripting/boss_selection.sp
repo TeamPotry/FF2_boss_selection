@@ -299,13 +299,14 @@ public Action Command_SetMyBoss(int client, int args)
 		CPrintToChat(client, "{olive}[FF2]{default} %t", "FF2Boss Can't change while playing boss");
 		return Plugin_Handled;
 	}
-
+/*
 	// TODO: Cvar
 	if(!CheckCommandAccess(client, "ff2boss", ADMFLAG_BAN))
 	{
 		ReplyToCommand(client, "[SM] %t.", "No Access");
 		return Plugin_Handled;
 	}
+*/
 
 	char menutext[MAX_NAME*2], bossName[MAX_NAME];
 	KeyValues BossKV;
