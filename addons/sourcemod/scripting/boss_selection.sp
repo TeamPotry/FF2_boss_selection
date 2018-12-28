@@ -297,6 +297,11 @@ void ResetRotationArray(char[] characterSet)
 			BossKV.Rewind();
 			BossKV.GetString("filename", characterName, sizeof(characterName));
 			LogMessage("characterName = %s", characterName);
+			// 원래 리스트에 표시 안되는 "hidden" 부류들은 여기에 포함되지 않도록
+			if(BossKV.GetNum("hidden", 0) > 0) {
+				RotationIndexArray.Set(loop, false);
+				continue;
+			}
 
 			RotationInfo.JumpToKey(characterName, true);
 
