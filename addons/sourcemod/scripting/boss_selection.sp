@@ -273,15 +273,22 @@ void ResetRotationArray(char[] characterSet)
 {
 	if(RotationInfo == null)	return;
 
-	char characterName[64];
-	KeyValues BossKV;
+	char rotationId[64];
+	KeyValues BossKV, tempRotationInfo;
 	int count, bossCount, ratio;
 
 	RotationInfo.Rewind();
-	RotationIndexArray = new ArrayList();
 
-	if(RotationInfo.JumpToKey(characterSet) || RotationInfo.JumpToKey("default", true))
+	RotationIndexArray = new ArrayList();
+	tempRotationInfo = new KeyValues("Freak Fortress 2");
+	tempRotationInfo.Import(RotationInfo);
+
+	LogMessage("characterPackName = %s", characterSet);
+	if(RotationInfo.JumpToKey("character_set"))
 	{
+		RotationInfo.JumpToKey(characterSet);
+		tempRotationInfo.JumpToKey("rotation");
+
 		ArrayList tempArray = new ArrayList();
 		count = RotationInfo.GetNum("rotation_count", 5);
 
@@ -295,15 +302,16 @@ void ResetRotationArray(char[] characterSet)
 		for (int loop = 0; (BossKV = GetCharacterKVEx(loop)) != null; loop++)
 		{
 			BossKV.Rewind();
-			BossKV.GetString("filename", characterName, sizeof(characterName));
-			LogMessage("characterName = %s", characterName);
 			// 원래 리스트에 표시 안되는 "hidden" 부류들은 여기에 포함되지 않도록
 			if(BossKV.GetNum("hidden", 0) > 0) {
 				RotationIndexArray.Set(loop, false);
 				continue;
 			}
 
-			RotationInfo.JumpToKey(characterName, true);
+			BossKV.GetString("rotation_id", rotationId, sizeof(rotationId));
+			LogMessage("rotation_id = %s", rotationId);
+
+			RotationInfo.JumpToKey(rotationId, true);
 
 			if(RotationInfo.GetNum("banned", 0) > 0)
 			{
@@ -337,7 +345,7 @@ void ResetRotationArray(char[] characterSet)
 			if(!RotationIndexArray.Get(random))
 				RotationIndexArray.Set(random, true);
 			else
-				loop--;
+				loop--; // TODO: 예외 무한루프 방지
 
 			/*
 			while((index = tempArray.FindValue(random)) != -1)
