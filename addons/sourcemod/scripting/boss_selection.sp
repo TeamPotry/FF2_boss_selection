@@ -283,7 +283,7 @@ void ResetRotationArray(char[] characterSet)
 	tempRotationInfo = new KeyValues("Freak Fortress 2");
 	tempRotationInfo.Import(RotationInfo);
 
-	LogMessage("characterPackName = %s", characterSet);
+	// LogMessage("characterPackName = %s", characterSet);
 	if(RotationInfo.JumpToKey("character_set"))
 	{
 		RotationInfo.JumpToKey(characterSet);
@@ -309,9 +309,8 @@ void ResetRotationArray(char[] characterSet)
 			}
 
 			BossKV.GetString("rotation_id", rotationId, sizeof(rotationId));
-			LogMessage("rotation_id = %s", rotationId);
-
 			RotationInfo.JumpToKey(rotationId, true);
+			// LogMessage("rotation_id = %s", rotationId);
 
 			if(RotationInfo.GetNum("banned", 0) > 0)
 			{
@@ -327,7 +326,7 @@ void ResetRotationArray(char[] characterSet)
 			{
 				ratio = RotationInfo.GetNum("ratio", 1);
 				for(int i = 0; i < ratio; i++) {
-					LogMessage("Added %d", loop);
+					// LogMessage("Added %d", loop);
 					tempArray.Push(loop);
 				}
 
