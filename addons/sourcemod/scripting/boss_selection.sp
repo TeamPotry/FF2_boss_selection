@@ -294,7 +294,6 @@ void ResetRotationArray(char[] characterSet)
 
 		for (int loop = 0; (BossKV = GetCharacterKVEx(loop)) != null; loop++)
 		{
-			result = true;
 			BossKV.Rewind();
 			BossKV.GetString("filename", characterName, sizeof(characterName));
 			LogMessage("characterName = %s", characterName);
