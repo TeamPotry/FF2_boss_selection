@@ -23,6 +23,9 @@ Handle g_hCvarChatCommand;
 
 Handle OnCheckSelectRules;
 
+KeyValues RotationInfo;
+ArrayList RotationIndexArray;
+
 public Plugin:myinfo = {
 	name = "Freak Fortress 2: Boss Selection EX",
 	description = "Allows players select their bosses by /ff2boss (2.0.0+)",
@@ -174,6 +177,8 @@ public void OnPluginStart()
 
 	g_hCvarChatCommand = CreateConVar("ff2_bossselection_chatcommand", "ff2boss,boss,보스,보스선택");
 
+	HookEvent("teamplay_round_start", OnRoundStart);
+
 	AddCommandListener(Listener_Say, "say");
 	AddCommandListener(Listener_Say, "say_team");
 
@@ -182,6 +187,24 @@ public void OnPluginStart()
 	LoadTranslations("ff2_boss_selection");
 
 	ChangeChatCommand();
+
+	RotationIndexArray = new ArrayList();
+}
+
+public void OnMapStart()
+{
+	if(RotationInfo != null)
+		delete RotationInfo;
+	RotationInfo = GetRotationInfo();
+
+	if(RotationIndexArray != null)
+		delete RotationIndexArray;
+}
+
+public Action OnRoundStart(Event event, const char[] name, bool dontBroadcast)
+{
+	if(RotationIndexArray == null)
+		ResetRotationArray(g_strCurrentCharacter);
 }
 
 public Action Listener_Say(int client, const char[] command, int argc)
@@ -229,6 +252,92 @@ public Action Listener_Say(int client, const char[] command, int argc)
 	}
 #endif
 
+KeyValues GetRotationInfo()
+{
+	char config[PLATFORM_MAX_PATH];
+	BuildPath(Path_SM, config, sizeof(config), "data/ff2_boss_selection.cfg");
+
+	KeyValues kv = new KeyValues("Freak Fortress 2");
+	if(!kv.ImportFromFile(config))
+	{
+		LogError("data/ff2_boss_selection.cfg doesn't exist!");
+		return null;
+	}
+
+	return kv;
+}
+
+void ResetRotationArray(char[] characterSet)
+{
+	if(RotationInfo == null)	return;
+
+	char characterName[64];
+	KeyValues BossKV;
+	bool result;
+	int count, bossCount, ratio;
+
+	RotationInfo.Rewind();
+	RotationIndexArray = new ArrayList();
+
+	if(RotationInfo.JumpToKey(characterSet) || RotationInfo.JumpToKey("default", true))
+	{
+		ArrayList tempArray = new ArrayList();
+		count = RotationInfo.GetNum("rotation_count", 5);
+
+		for (bossCount = 0; (BossKV = GetCharacterKVEx(bossCount)) != null; bossCount++)
+		{
+			// JUST FOR bossCount;
+		}
+
+		RotationIndexArray.Resize(bossCount);
+
+		for (int loop = 0; (BossKV = GetCharacterKVEx(loop)) != null; loop++)
+		{
+			result = true;
+			BossKV.Rewind();
+			BossKV.GetString("filename", characterName, sizeof(characterName));
+			LogMessage("characterName = %s", characterName);
+
+			RotationInfo.JumpToKey(characterName, true)
+
+			if(RotationInfo.GetNum("banned", 0) > 0)
+			{
+				RotationIndexArray.Set(loop, false);
+			}
+			else if(RotationInfo.GetNum("always_appear", 0) > 0)
+			{
+				RotationIndexArray.Set(loop, true);
+				if(RotationInfo.GetNum("can_be_count", 1) <= 0)
+					count--;
+			}
+			else
+			{
+				ratio = RotationInfo.GetNum("ratio", 1);
+				for(int i = 0; i < ratio; i++)
+					tempArray.Push(loop);
+
+				RotationIndexArray.Set(loop, false);
+			}
+
+			RotationInfo.GoBack();
+		}
+
+
+		int random, index;
+		for(int loop = 0; loop < count; loop++)
+		{
+			random = tempArray.Get(GetRandomInt(0, tempArray.Length));
+			RotationIndexArray.Set(random, true);
+
+			while((index = tempArray.FindValue(random)) != -1)
+			{
+				tempArray.ShiftUp(index);
+			}
+		}
+
+		delete tempArray;
+	}
+}
 
 public Action FF2_OnAddQueuePoints(int add_points[MAXPLAYERS+1])
 {
@@ -389,8 +498,14 @@ public Action Command_SetMyBoss(int client, int args)
 			Format(menutext, sizeof(menutext), "%s (%t)", bossName, "FF2Boss Cant Chosse This Map");
 			itemflags |= ITEMDRAW_DISABLED;
 		}
+		else if(RotationIndexArray != null)
+		{
+			Format(menutext, sizeof(menutext), "%s (%t)", bossName, "FF2Boss Cant Chosse This Now");
+		}
 		else
+		{
 			Format(menutext, sizeof(menutext), "%s", bossName);
+		}
 
 		Format(menutext, sizeof(menutext), "%s", bossName);
 		AddMenuItem(dMenu, spcl, menutext, itemflags);
