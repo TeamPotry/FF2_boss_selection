@@ -329,12 +329,17 @@ void ResetRotationArray(char[] characterSet)
 		for(int loop = 0; loop < count; loop++)
 		{
 			random = tempArray.Get(GetRandomInt(0, tempArray.Length-1));
-			RotationIndexArray.Set(random, true);
+			if(!RotationIndexArray.Get(random))
+				RotationIndexArray.Set(random, true);
+			else
+				loop--;
 
+			/*
 			while((index = tempArray.FindValue(random)) != -1)
 			{
 				tempArray.ShiftUp(index);
 			}
+			*/
 		}
 
 		delete tempArray;
@@ -510,7 +515,6 @@ public Action Command_SetMyBoss(int client, int args)
 			Format(menutext, sizeof(menutext), "%s", bossName);
 		}
 
-		Format(menutext, sizeof(menutext), "%s", bossName);
 		AddMenuItem(dMenu, spcl, menutext, itemflags);
 	}
 	SetMenuExitButton(dMenu, true);
