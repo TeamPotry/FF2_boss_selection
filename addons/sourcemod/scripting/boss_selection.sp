@@ -224,7 +224,7 @@ public Action Listener_Say(int client, const char[] command, int argc)
 	strChat[strlen(strChat)-1] = '\0';
 	ExplodeString(strChat[start], " ", temp, 2, 64, true);
 
-	if(temp[0] == '\0' || temp[0] == ' ')
+	if(temp[0][0] == '\0' || temp[0][0] == ' ')
 		return Plugin_Continue;
 
 	for (int i=0; i<=g_iChatCommand; i++)
@@ -340,7 +340,7 @@ void ResetRotationArray(char[] characterSet)
 		}
 
 
-		int random, index;
+		int random; // index;
 		for(int loop = 0; loop < count; loop++)
 		{
 			random = tempArray.Get(GetRandomInt(0, tempArray.Length-1));
