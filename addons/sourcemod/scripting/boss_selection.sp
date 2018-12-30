@@ -293,7 +293,7 @@ void ResetRotationArray(char[] characterSet)
 		tempRotationInfo.JumpToKey("rotation");
 
 		ArrayList tempArray = new ArrayList();
-		count = RotationInfo.GetNum("rotation_count", 5);
+		count = RotationInfo.GetNum("rotation_count", 0);
 
 		for (bossCount = 0; (BossKV = GetCharacterKVEx(bossCount)) != null; bossCount++)
 		{
@@ -308,6 +308,10 @@ void ResetRotationArray(char[] characterSet)
 			// 원래 리스트에 표시 안되는 "hidden" 부류들은 여기에 포함되지 않도록
 			if(BossKV.GetNum("hidden", 0) > 0) {
 				RotationIndexArray.Set(loop, false);
+				continue;
+			}
+			else if(count <= 0) {
+				RotationIndexArray.Set(loop, true);
 				continue;
 			}
 
