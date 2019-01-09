@@ -415,6 +415,8 @@ public Action FF2_OnCheckSelectRules(int client, int characterIndex, const char[
 
 public void OnClientPutInServer(client)
 {
+	Incoming[client] = "";
+
 	if(AreClientCookiesCached(client))
 	{
 		FF2BossCookie.InitializeData(client);
