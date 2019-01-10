@@ -218,9 +218,14 @@ public Action Listener_Say(int client, const char[] command, int argc)
 	GetCmdArgString(strChat, sizeof(strChat));
 
 	int start;
+	bool slient = false;
 
 	if(strChat[start] == '"') start++;
-	if(strChat[start] == '!' || strChat[start] == '/') start++;
+	if(strChat[start] == '!' || strChat[start] == '/')
+	{
+		slient = strChat[start] == '/';
+		start++;
+	}
 	strChat[strlen(strChat)-1] = '\0';
 	ExplodeString(strChat[start], " ", temp, 2, 64, true);
 
@@ -233,11 +238,11 @@ public Action Listener_Say(int client, const char[] command, int argc)
 		{
 			if(temp[1][0] != '\0')
 			{
-				return Plugin_Continue;
+				return slient ? Plugin_Handled : Plugin_Continue;
 			}
 
 			Command_SetMyBoss(client, 0);
-			return Plugin_Continue;
+			return slient ? Plugin_Handled : Plugin_Continue;
 		}
 	}
 
