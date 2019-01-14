@@ -494,6 +494,7 @@ public Action Command_SetMyBoss(int client, int args)
 		BossKV.Rewind();
 
 		if (BossKV.GetNum("hidden", 0) > 0) continue;
+		else if (BossKV.GetNum("blocked", 0) > 0) continue;
 
 		BossKV.GetString("ban_map", banMaps, 500);
 		Format(spcl, sizeof(spcl), "%d", i);
