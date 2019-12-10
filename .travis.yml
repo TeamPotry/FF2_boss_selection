@@ -25,8 +25,8 @@ script:
     - mkdir compiled/1.0
     - mv compiled/boss_selection.smx compiled/1.0/boss_selection.smx
 
-    - wget "https://raw.githubusercontent.com/TeamPotry/FF2_Fork/2.2/sourcemod/scripting/include/ff2_potry.inc" -O include/ff2_potry.inc
-    - wget "https://raw.githubusercontent.com/TeamPotry/FF2_Fork/2.2/sourcemod/scripting/include/freak_fortress_2.inc" -O include/freak_fortress_2.inc
+    - wget "https://raw.githubusercontent.com/TeamPotry/FF2_Fork/2.3/sourcemod/scripting/include/ff2_potry.inc" -O include/ff2_potry.inc
+    - wget "https://raw.githubusercontent.com/TeamPotry/FF2_Fork/2.3/sourcemod/scripting/include/freak_fortress_2.inc" -O include/freak_fortress_2.inc
 
     - ./compile.sh boss_selection.sp
 
