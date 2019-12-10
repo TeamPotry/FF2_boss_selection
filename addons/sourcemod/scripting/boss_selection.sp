@@ -480,11 +480,11 @@ public Action Command_SetMyBoss(int client, int args)
 	Format(menutext, sizeof(menutext), "%t", "FF2Boss Menu None");
 	AddMenuItem(dMenu, "None", menutext);
 
-	char spcl[MAX_NAME], banMaps[500], map[100], ruleName[80], value[120];
+	char spcl[MAX_NAME], banMaps[500], map[100], ruleName[80], tempRuleName[80], value[120];
 	GetCurrentMap(map, sizeof(map));
 
 	int itemflags;
-	bool checked = true;
+	bool checked = true, multipleCheck;
 	Action action;
 
 	for (int i = 0; (BossKV = GetCharacterKVEx(i)) != null; i++)
@@ -507,24 +507,51 @@ public Action Command_SetMyBoss(int client, int args)
 			{
 				BossKV.GetSectionName(ruleName, sizeof(ruleName));
 
-				Call_StartForward(OnCheckSelectRules);
-				Call_PushCell(client);
-				Call_PushCell(i);
-				Call_PushStringEx(ruleName, sizeof(ruleName), SM_PARAM_STRING_COPY|SM_PARAM_STRING_UTF8, SM_PARAM_COPYBACK);
-				BossKV.GetString(NULL_STRING, value, 120, "");
-				Call_PushStringEx(value, sizeof(value), SM_PARAM_STRING_UTF8 | SM_PARAM_STRING_COPY, SM_PARAM_COPYBACK);
-				Call_Finish(action);
-
-				if(action == Plugin_Stop || action == Plugin_Handled)
+				if(StrEqual(ruleName, "multiple") && BossKV.GotoFirstSubKey())
 				{
-					checked = false;
-					break;
+					do
+					{
+						multipleCheck = false;
+						if(BossKV.GotoFirstSubKey(false))
+						{
+							do
+							{
+								BossKV.GetSectionName(tempRuleName, sizeof(tempRuleName));
+
+								Call_StartForward(OnCheckSelectRules);
+								Call_PushCell(client);
+								Call_PushCell(i);
+								Call_PushStringEx(tempRuleName, sizeof(tempRuleName), SM_PARAM_STRING_UTF8 | SM_PARAM_STRING_COPY, SM_PARAM_COPYBACK);
+								BossKV.GetString(NULL_STRING, value, 120);
+								Call_PushStringEx(value, sizeof(value), SM_PARAM_STRING_UTF8 | SM_PARAM_STRING_COPY, SM_PARAM_COPYBACK);
+								Call_Finish(action);
+
+								multipleCheck = action == Plugin_Stop || action == Plugin_Handled ? false : true;
+								if(multipleCheck) break;
+							}
+							while(BossKV.GotoNextKey(false));
+							BossKV.GoBack();
+						}
+					}
+					while(BossKV.GotoNextKey());
+					BossKV.GoBack();
+				}
+				else
+				{
+					Call_StartForward(OnCheckSelectRules);
+					Call_PushCell(client);
+					Call_PushCell(i);
+					Call_PushStringEx(ruleName, sizeof(ruleName), SM_PARAM_STRING_COPY|SM_PARAM_STRING_UTF8, SM_PARAM_COPYBACK);
+					BossKV.GetString(NULL_STRING, value, 120, "");
+					Call_PushStringEx(value, sizeof(value), SM_PARAM_STRING_UTF8 | SM_PARAM_STRING_COPY, SM_PARAM_COPYBACK);
+					Call_Finish(action);
 				}
 
+				checked = action == Plugin_Stop || action == Plugin_Handled ? false : true;
 			}
 			while(BossKV.GotoNextKey(false));
 
-			if(!checked) continue;
+			if(!checked && !multipleCheck) continue;
 		}
 
 		if(banMaps[0] != '\0' && !StrContains(banMaps, map, false))
