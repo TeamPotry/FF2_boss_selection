@@ -397,6 +397,8 @@ public Action FF2_OnAddQueuePoints(int add_points[MAXPLAYERS+1])
 public Action FF2_OnCheckSelectRules(int client, int characterIndex, const char[] ruleName, const char[] value)
 {
 	int integerValue = StringToInt(value);
+	char authId[32];
+	GetClientAuthId(client, AuthId_SteamID64, authId, sizeof(authId));
 	// CPrintToChatAll("%s: %s, %d", ruleName, value, integerValue);
 
 	/*
@@ -413,6 +415,11 @@ public Action FF2_OnCheckSelectRules(int client, int characterIndex, const char[
 	}
 	*/
 	if(StrEqual(ruleName, "blocked"))	return Plugin_Handled;
+	if(StrEqual(ruleName, "creator"))
+	{
+		int flags = FF2_GetBossCreatorFlags(authId, characterIndex, true);
+		return flags > 0 ? Plugin_Continue : Plugin_Handled;
+	}
 
 	return Plugin_Continue;
 }
