@@ -22,16 +22,19 @@ jobs:
       - name: Setup Include
         run: |      
           mkdir includes
-          
+          ls
+           
           wget https://raw.githubusercontent.com/TeamPotry/FF2_Fork/master/sourcemod/scripting/include/freak_fortress_2.inc -P includes
           wget https://raw.githubusercontent.com/TeamPotry/FF2_Fork/master/sourcemod/scripting/include/ff2_potry.inc -P includes
 
       - name: Compile
         working-directory: addons/sourcemod/scripting
         run: |
-          spcomp -iincludes boss_selection.sp -o output/boss_selection.smx
+          mkdir build
+          
+          spcomp -iincludes boss_selection.sp -o build/boss_selection.smx
           rm ./includes/ff2_potry.inc
-          spcomp -iincludes boss_selection.sp -o output/boss_selection_v1.smx
+          spcomp -iincludes boss_selection.sp -o build/boss_selection_v1.smx
 
 
       
