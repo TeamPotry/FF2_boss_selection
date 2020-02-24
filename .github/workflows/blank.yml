@@ -11,15 +11,16 @@ jobs:
 
     name: SM version ${{ matrix.sm-version }}
     steps:
-      - uses: actions/checkout@v1
-
       - name: Setup
-        uses: rumblefrog/setup-sp@master
+        uses: |
+          actions/checkout@master
+          rumblefrog/setup-sp@master
         with:
-          working-directory: addons/sourcemod/scripting
           version: ${{ matrix.sm-version }}
 
-      - run: |
+      - name: Compile
+        working-directory: addons/sourcemod/scripting
+        run: |
           which spcomp
           echo $includePath
           spcomp -i$includePath boss_selection.sp -o output/boss_selection.smx  
