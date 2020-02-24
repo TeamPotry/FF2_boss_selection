@@ -32,12 +32,12 @@ jobs:
           mkdir build
           spcomp -iinclude boss_selection.sp -o build/boss_selection.smx
           
+          cd ./include
+          rm -v ff2_potry.inc
+          
       - name: Compile for 1.0
         working-directory: addons/sourcemod/scripting
         run: |
-          cd ./include
-          rm -v ff2_potry.inc
-          ls
           spcomp -iinclude boss_selection.sp -o build/boss_selection_v1.smx
 
       - name: Upload plugin artifact
