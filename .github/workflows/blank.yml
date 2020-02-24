@@ -19,7 +19,7 @@ jobs:
           working-directory: addons/sourcemod/scripting
           version: ${{ matrix.sm-version }}
 
-      - run: spcomp -iAnotherIncludeDirectory boss_selection.sp -o output/boss_selection.smx  
+      - run: spcomp -i$includePath boss_selection.sp -o output/boss_selection.smx  
   
 
       
