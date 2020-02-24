@@ -26,6 +26,7 @@ jobs:
            
           wget https://raw.githubusercontent.com/TeamPotry/FF2_Fork/master/sourcemod/scripting/include/freak_fortress_2.inc -P includes
           wget https://raw.githubusercontent.com/TeamPotry/FF2_Fork/master/sourcemod/scripting/include/ff2_potry.inc -P includes
+          wget "http://www.doctormckay.com/download/scripting/include/morecolors.inc" -P includes
 
       - name: Compile
         working-directory: addons/sourcemod/scripting
