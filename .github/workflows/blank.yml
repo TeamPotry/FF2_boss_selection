@@ -23,7 +23,6 @@ jobs:
         working-directory: addons/sourcemod/scripting
         run: |             
           wget https://raw.githubusercontent.com/TeamPotry/FF2_Fork/master/sourcemod/scripting/include/freak_fortress_2.inc -P include
-          wget https://raw.githubusercontent.com/TeamPotry/FF2_Fork/master/sourcemod/scripting/include/ff2_potry.inc -P include
           wget "http://www.doctormckay.com/download/scripting/include/morecolors.inc" -P include
 
       - name: Compile
@@ -32,12 +31,10 @@ jobs:
           mkdir build
           spcomp -iinclude boss_selection.sp -o build/boss_selection.smx
           
-          cd ./include
-          rm -v ff2_potry.inc
-          
       - name: Compile for 1.0
         working-directory: addons/sourcemod/scripting
         run: |
+          wget https://raw.githubusercontent.com/TeamPotry/FF2_Fork/master/sourcemod/scripting/include/ff2_potry.inc -P include
           spcomp -iinclude boss_selection.sp -o build/boss_selection_v1.smx
 
       - name: Upload plugin artifact
