@@ -10,15 +10,15 @@ jobs:
         sm-version: [ '1.10.x', '1.11.x', '1.11.6467']
 
     name: SM version ${{ matrix.sm-version }}
-    steps:
-      - name: Setup Source
-        uses: actions/checkout@master
-          
+    steps:        
       - name: Setup SourceMod
         uses: rumblefrog/setup-sp@master
         with:
           version: ${{ matrix.sm-version }}
-    
+
+      - name: Setup Source
+        uses: actions/checkout@master
+
       - name: Compile
         working-directory: addons/sourcemod/scripting
         run: |
