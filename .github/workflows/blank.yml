@@ -18,13 +18,20 @@ jobs:
 
       - name: Setup Source
         uses: actions/checkout@master
+      
+      - name: Setup Include
+        run: |
+          wget https://raw.githubusercontent.com/TeamPotry/FF2_Fork/master/sourcemod/scripting/include/freak_fortress_2.inc -O include/freak_fortress_2.inc
+          wget https://raw.githubusercontent.com/TeamPotry/FF2_Fork/master/sourcemod/scripting/include/ff2_potry.inc -O include/ff2_potry.inc
 
       - name: Compile
         working-directory: addons/sourcemod/scripting
         run: |
           which spcomp
           echo $includePath
-          spcomp -i$includePath boss_selection.sp -o output/boss_selection.smx  
+          spcomp -i$includePath boss_selection.sp -o output/boss_selection.smx
+          rm ./include/ff2_potry.inc
+          spcomp -i$includePath boss_selection.sp -o output/boss_selection.smx
 
 
       
