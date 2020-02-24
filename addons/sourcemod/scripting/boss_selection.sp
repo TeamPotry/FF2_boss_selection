@@ -5,7 +5,10 @@
 #include <clientprefs>
 ///
 #include <freak_fortress_2>
+
+#undef REQUIRE_PLUGIN
 #tryinclude <ff2_potry>
+#define REQUIRE_PLUGIN
 ///
 #include <ff2_boss_selection>
 
