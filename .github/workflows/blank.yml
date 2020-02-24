@@ -21,21 +21,19 @@ jobs:
       
       - name: Setup Include
         working-directory: addons/sourcemod/scripting
-        run: |      
-          mkdir includes
-           
-          wget https://raw.githubusercontent.com/TeamPotry/FF2_Fork/master/sourcemod/scripting/include/freak_fortress_2.inc -P includes
-          wget https://raw.githubusercontent.com/TeamPotry/FF2_Fork/master/sourcemod/scripting/include/ff2_potry.inc -P includes
-          wget "http://www.doctormckay.com/download/scripting/include/morecolors.inc" -P includes
+        run: |             
+          wget https://raw.githubusercontent.com/TeamPotry/FF2_Fork/master/sourcemod/scripting/include/freak_fortress_2.inc -P include
+          wget https://raw.githubusercontent.com/TeamPotry/FF2_Fork/master/sourcemod/scripting/include/ff2_potry.inc -P include
+          wget "http://www.doctormckay.com/download/scripting/include/morecolors.inc" -P include
 
       - name: Compile
         working-directory: addons/sourcemod/scripting
         run: |
           mkdir build
           
-          spcomp -iincludes boss_selection.sp -o build/boss_selection.smx
-          rm ./includes/ff2_potry.inc
-          spcomp -iincludes boss_selection.sp -o build/boss_selection_v1.smx
+          spcomp boss_selection.sp -o build/boss_selection.smx
+          rm ./include/ff2_potry.inc
+          spcomp boss_selection.sp -o build/boss_selection_v1.smx
 
 
       
