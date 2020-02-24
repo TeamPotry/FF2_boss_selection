@@ -13,9 +13,10 @@ jobs:
     steps:
       - uses: actions/checkout@v1
 
-      - name: Setup SP
+      - name: Setup
         uses: rumblefrog/setup-sp@master
         with:
+          working-directory: addons/sourcemod/scripting
           version: ${{ matrix.sm-version }}
 
       - run: spcomp -iAnotherIncludeDirectory boss_selection.sp -o output/boss_selection.smx  
