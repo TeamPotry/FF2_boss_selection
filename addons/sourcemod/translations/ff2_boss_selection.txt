@@ -10,6 +10,11 @@
         "en"    "You can not change boss while playing boss."
     }
 
+    "FF2Boss Cant Chosse This Now"
+    {
+        "en"    "Currently unselectable"
+    }
+
     "FF2Boss Dont Play Boss"
     {
         "en"    "leaved queue. (Queue point saved.)"

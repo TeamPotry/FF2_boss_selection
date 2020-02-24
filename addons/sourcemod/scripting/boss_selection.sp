@@ -2,14 +2,18 @@
 
 #include <sourcemod>
 #include <tf2_stocks>
-#include <freak_fortress_2>
-#include <ff2_potry>
 #include <clientprefs>
+///
+#include <freak_fortress_2>
+#tryinclude <ff2_potry>
+///
+#include <ff2_boss_selection>
 
 #define PLUGIN_VERSION "2(1.0)"
 #define MAX_NAME 64
 
 int g_iChatCommand;
+int FF2Version[3];
 
 char g_strCurrentCharacter[64];
 char Incoming[MAXPLAYERS+1][64];
@@ -18,6 +22,9 @@ char g_strChatCommand[42][50];
 Handle g_hCvarChatCommand;
 
 Handle OnCheckSelectRules;
+
+KeyValues RotationInfo;
+ArrayList RotationIndexArray;
 
 public Plugin:myinfo = {
 	name = "Freak Fortress 2: Boss Selection EX",
@@ -153,19 +160,24 @@ methodmap FF2BossCookie {
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
 {
 	OnCheckSelectRules = CreateGlobalForward("FF2_OnCheckSelectRules", ET_Hook, Param_Cell, Param_Cell, Param_String, Param_String); // Client, characterIndex, Rule String, value;
+
+	MarkNativeAsOptional("FF2_GetSpecialKV");
 	return APLRes_Success;
 }
 
 public void OnPluginStart()
 {
-	int version[3];
-	FF2_GetFF2Version(version);
-	if(version[0]<2)
+	FF2_GetFF2Version(FF2Version);
+	if(FF2Version[0] == 2)
 	{
-		SetFailState("This version of FF2 Boss Selection requires at least FF2 v2.0.0!");
+		#if !defined _ff2_potry_included
+			SetFailState("FF2 v2.0.0 is need ff2_potry.inc!");
+		#endif
 	}
 
 	g_hCvarChatCommand = CreateConVar("ff2_bossselection_chatcommand", "ff2boss,boss,보스,보스선택");
+
+	HookEvent("teamplay_round_start", OnRoundStart);
 
 	AddCommandListener(Listener_Say, "say");
 	AddCommandListener(Listener_Say, "say_team");
@@ -175,28 +187,27 @@ public void OnPluginStart()
 	LoadTranslations("ff2_boss_selection");
 
 	ChangeChatCommand();
+
+	RotationIndexArray = new ArrayList();
 }
 
-/*
-public void SA_OnLoadedAchievements()
+public void OnMapStart()
 {
-	KeyValues BossKV;
-	char achievementId[80];
-	int maxProcessInteger;
+	ChangeChatCommand();
 
-	for (int i = 0; (BossKV = FF2_GetCharacterKV(i)) != null; i++)
-	{
-		BossKV.Rewind();
+	if(RotationInfo != null)
+		delete RotationInfo;
+	RotationInfo = GetRotationInfo();
 
-		if((maxProcessInteger = BossKV.GetNum("challenge_hp")) > 0)
-		{
-			BossKV.GetString("filename", achievementId, sizeof(achievementId), "");
-			Format(achievementId, sizeof(achievementId), "ff2_boss_%s", achievementId);
-			SA_CreateTemporaryAchievement(achievementId, maxProcessInteger);
-		}
-	}
+	if(RotationIndexArray != null)
+		delete RotationIndexArray;
 }
-*/
+
+public Action OnRoundStart(Event event, const char[] name, bool dontBroadcast)
+{
+	if(RotationIndexArray == null)
+		ResetRotationArray(g_strCurrentCharacter);
+}
 
 public Action Listener_Say(int client, const char[] command, int argc)
 {
@@ -207,11 +218,19 @@ public Action Listener_Say(int client, const char[] command, int argc)
 	GetCmdArgString(strChat, sizeof(strChat));
 
 	int start;
+	bool slient = false;
 
 	if(strChat[start] == '"') start++;
-	if(strChat[start] == '!' || strChat[start] == '/') start++;
+	if(strChat[start] == '!' || strChat[start] == '/')
+	{
+		slient = strChat[start] == '/';
+		start++;
+	}
 	strChat[strlen(strChat)-1] = '\0';
 	ExplodeString(strChat[start], " ", temp, 2, 64, true);
+
+	if(temp[0][0] == '\0' || temp[0][0] == ' ')
+		return Plugin_Continue;
 
 	for (int i=0; i<=g_iChatCommand; i++)
 	{
@@ -219,21 +238,136 @@ public Action Listener_Say(int client, const char[] command, int argc)
 		{
 			if(temp[1][0] != '\0')
 			{
-				return Plugin_Continue;
+				return slient ? Plugin_Handled : Plugin_Continue;
 			}
 
 			Command_SetMyBoss(client, 0);
-			return Plugin_Continue;
+			return slient ? Plugin_Handled : Plugin_Continue;
 		}
 	}
 
 	return Plugin_Continue;
 }
+#if !defined _ff2_potry_included
+	public Action FF2_OnLoadCharacterSet(int &charSetNum, char[] charSetName)
+	{
+		strcopy(g_strCurrentCharacter, sizeof(g_strCurrentCharacter), charSetName);
+		return Plugin_Continue;
+	}
+#else
+	public Action FF2_OnLoadCharacterSet(char[] characterSet)
+	{
+		strcopy(g_strCurrentCharacter, sizeof(g_strCurrentCharacter), characterSet);
+		return Plugin_Continue;
+	}
+#endif
 
-public Action FF2_OnLoadCharacterSet(char[] characterSet)
+KeyValues GetRotationInfo()
 {
-	strcopy(g_strCurrentCharacter, sizeof(g_strCurrentCharacter), characterSet);
-	return Plugin_Continue;
+	char config[PLATFORM_MAX_PATH];
+	BuildPath(Path_SM, config, sizeof(config), "data/ff2_boss_selection.cfg");
+
+	KeyValues kv = new KeyValues("Freak Fortress 2");
+	if(!kv.ImportFromFile(config))
+	{
+		LogError("data/ff2_boss_selection.cfg doesn't exist!");
+		return null;
+	}
+
+	return kv;
+}
+
+void ResetRotationArray(char[] characterSet)
+{
+	if(RotationInfo == null)	return;
+
+	char rotationId[64];
+	KeyValues BossKV, tempRotationInfo;
+	int count, bossCount, ratio;
+
+	RotationInfo.Rewind();
+
+	RotationIndexArray = new ArrayList();
+	tempRotationInfo = new KeyValues("Freak Fortress 2");
+	tempRotationInfo.Import(RotationInfo);
+
+	// LogMessage("characterPackName = %s", characterSet);
+	if(RotationInfo.JumpToKey("character_set"))
+	{
+		RotationInfo.JumpToKey(characterSet);
+		tempRotationInfo.JumpToKey("rotation");
+
+		ArrayList tempArray = new ArrayList();
+		count = RotationInfo.GetNum("rotation_count", 0);
+
+		for (bossCount = 0; (BossKV = GetCharacterKVEx(bossCount)) != null; bossCount++)
+		{
+			// JUST FOR bossCount;
+		}
+
+		RotationIndexArray.Resize(bossCount);
+
+		for (int loop = 0; (BossKV = GetCharacterKVEx(loop)) != null; loop++)
+		{
+			BossKV.Rewind();
+			// 원래 리스트에 표시 안되는 "hidden" 부류들은 여기에 포함되지 않도록
+			if(BossKV.GetNum("hidden", 0) > 0) {
+				RotationIndexArray.Set(loop, false);
+				continue;
+			}
+			else if(count <= 0) {
+				RotationIndexArray.Set(loop, true);
+				continue;
+			}
+
+			BossKV.GetString("rotation_id", rotationId, sizeof(rotationId));
+			RotationInfo.JumpToKey(rotationId, true);
+			// LogMessage("rotation_id = %s", rotationId);
+
+			if(RotationInfo.GetNum("banned", 0) > 0)
+			{
+				RotationIndexArray.Set(loop, false);
+			}
+			else if(RotationInfo.GetNum("always_appear", 0) > 0)
+			{
+				RotationIndexArray.Set(loop, true);
+				if(RotationInfo.GetNum("can_be_count", 1) <= 0)
+					count--;
+			}
+			else
+			{
+				ratio = RotationInfo.GetNum("ratio", 1);
+				for(int i = 0; i < ratio; i++) {
+					// LogMessage("Added %d", loop);
+					tempArray.Push(loop);
+				}
+
+				RotationIndexArray.Set(loop, false);
+			}
+
+			RotationInfo.GoBack();
+		}
+
+
+		int random; // index;
+		for(int loop = 0; loop < count; loop++)
+		{
+			random = tempArray.Get(GetRandomInt(0, tempArray.Length-1));
+			if(!RotationIndexArray.Get(random))
+				RotationIndexArray.Set(random, true);
+			else
+				loop--; // TODO: 예외 무한루프 방지
+
+			/*
+			while((index = tempArray.FindValue(random)) != -1)
+			{
+				tempArray.ShiftUp(index);
+			}
+			*/
+		}
+
+		delete tempArray;
+	}
 }
 
 public Action FF2_OnAddQueuePoints(int add_points[MAXPLAYERS+1])
@@ -263,8 +397,11 @@ public Action FF2_OnAddQueuePoints(int add_points[MAXPLAYERS+1])
 public Action FF2_OnCheckSelectRules(int client, int characterIndex, const char[] ruleName, const char[] value)
 {
 	int integerValue = StringToInt(value);
+	char authId[32];
+	GetClientAuthId(client, AuthId_SteamID64, authId, sizeof(authId));
 	// CPrintToChatAll("%s: %s, %d", ruleName, value, integerValue);
 
+	/*
 	if(StrEqual(ruleName, "admin")) // FIXME: Not Working.
 	{
 		AdminId adminId = GetUserAdmin(client);
@@ -276,7 +413,13 @@ public Action FF2_OnCheckSelectRules(int client, int characterIndex, const char[
 		}
 		return Plugin_Handled;
 	}
+	*/
 	if(StrEqual(ruleName, "blocked"))	return Plugin_Handled;
+	if(StrEqual(ruleName, "creator"))
+	{
+		int flags = FF2_GetBossCreatorFlags(authId, characterIndex, true);
+		return flags > 0 ? Plugin_Continue : Plugin_Handled;
+	}
 
 	return Plugin_Continue;
 }
@@ -284,6 +427,8 @@ public Action FF2_OnCheckSelectRules(int client, int characterIndex, const char[
 
 public void OnClientPutInServer(client)
 {
+	Incoming[client] = "";
+
 	if(AreClientCookiesCached(client))
 	{
 		FF2BossCookie.InitializeData(client);
@@ -303,11 +448,19 @@ public Action Command_SetMyBoss(int client, int args)
 		CPrintToChat(client, "{olive}[FF2]{default} %t", "FF2Boss Can't change while playing boss");
 		return Plugin_Handled;
 	}
+/*
+	// TODO: Cvar
+	if(!CheckCommandAccess(client, "ff2boss", ADMFLAG_BAN))
+	{
+		ReplyToCommand(client, "[SM] %t.", "No Access");
+		return Plugin_Handled;
+	}
+*/
 
 	char menutext[MAX_NAME*2], bossName[MAX_NAME];
 	KeyValues BossKV;
 	Handle dMenu = CreateMenu(Command_SetMyBossH);
-	BossKV = FF2_GetCharacterKV(FF2BossCookie.GetSavedIncomeIndex(client));
+	BossKV = GetCharacterKVEx(FF2BossCookie.GetSavedIncomeIndex(client));
 
 	SetGlobalTransTarget(client);
 
@@ -334,20 +487,21 @@ public Action Command_SetMyBoss(int client, int args)
 	Format(menutext, sizeof(menutext), "%t", "FF2Boss Menu None");
 	AddMenuItem(dMenu, "None", menutext);
 
-	char spcl[MAX_NAME], banMaps[500], map[100], ruleName[80], value[120];
+	char spcl[MAX_NAME], banMaps[500], map[100], ruleName[80], tempRuleName[80], value[120];
 	GetCurrentMap(map, sizeof(map));
 
 	int itemflags;
-	bool checked = true;
+	bool checked = true, multipleCheck;
 	Action action;
 
-	for (int i = 0; (BossKV = FF2_GetCharacterKV(i)) != null; i++)
+	for (int i = 0; (BossKV = GetCharacterKVEx(i)) != null; i++)
 	{
 		itemflags = 0;
 		checked = true;
 		BossKV.Rewind();
 
 		if (BossKV.GetNum("hidden", 0) > 0) continue;
+		else if (BossKV.GetNum("blocked", 0) > 0) continue;
 
 		BossKV.GetString("ban_map", banMaps, 500);
 		Format(spcl, sizeof(spcl), "%d", i);
@@ -360,24 +514,51 @@ public Action Command_SetMyBoss(int client, int args)
 			{
 				BossKV.GetSectionName(ruleName, sizeof(ruleName));
 
-				Call_StartForward(OnCheckSelectRules);
-				Call_PushCell(client);
-				Call_PushCell(i);
-				Call_PushStringEx(ruleName, sizeof(ruleName), SM_PARAM_STRING_COPY|SM_PARAM_STRING_UTF8, SM_PARAM_COPYBACK);
-				BossKV.GetString(NULL_STRING, value, 120, "");
-				Call_PushStringEx(value, sizeof(value), SM_PARAM_STRING_UTF8 | SM_PARAM_STRING_COPY, SM_PARAM_COPYBACK);
-				Call_Finish(action);
-
-				if(action == Plugin_Stop || action == Plugin_Handled)
+				if(StrEqual(ruleName, "multiple") && BossKV.GotoFirstSubKey())
 				{
-					checked = false;
-					break;
+					do
+					{
+						multipleCheck = false;
+						if(BossKV.GotoFirstSubKey(false))
+						{
+							do
+							{
+								BossKV.GetSectionName(tempRuleName, sizeof(tempRuleName));
+
+								Call_StartForward(OnCheckSelectRules);
+								Call_PushCell(client);
+								Call_PushCell(i);
+								Call_PushStringEx(tempRuleName, sizeof(tempRuleName), SM_PARAM_STRING_UTF8 | SM_PARAM_STRING_COPY, SM_PARAM_COPYBACK);
+								BossKV.GetString(NULL_STRING, value, 120);
+								Call_PushStringEx(value, sizeof(value), SM_PARAM_STRING_UTF8 | SM_PARAM_STRING_COPY, SM_PARAM_COPYBACK);
+								Call_Finish(action);
+
+								multipleCheck = action == Plugin_Stop || action == Plugin_Handled ? false : true;
+								if(multipleCheck) break;
+							}
+							while(BossKV.GotoNextKey(false));
+							BossKV.GoBack();
+						}
+					}
+					while(BossKV.GotoNextKey());
+					BossKV.GoBack();
+				}
+				else
+				{
+					Call_StartForward(OnCheckSelectRules);
+					Call_PushCell(client);
+					Call_PushCell(i);
+					Call_PushStringEx(ruleName, sizeof(ruleName), SM_PARAM_STRING_COPY|SM_PARAM_STRING_UTF8, SM_PARAM_COPYBACK);
+					BossKV.GetString(NULL_STRING, value, 120, "");
+					Call_PushStringEx(value, sizeof(value), SM_PARAM_STRING_UTF8 | SM_PARAM_STRING_COPY, SM_PARAM_COPYBACK);
+					Call_Finish(action);
 				}
 
+				checked = action == Plugin_Stop || action == Plugin_Handled ? false : true;
 			}
 			while(BossKV.GotoNextKey(false));
 
-			if(!checked) continue;
+			if(!checked && !multipleCheck) continue;
 		}
 
 		if(banMaps[0] != '\0' && !StrContains(banMaps, map, false))
@@ -385,10 +566,16 @@ public Action Command_SetMyBoss(int client, int args)
 			Format(menutext, sizeof(menutext), "%s (%t)", bossName, "FF2Boss Cant Chosse This Map");
 			itemflags |= ITEMDRAW_DISABLED;
 		}
+		else if(RotationIndexArray != null && !RotationIndexArray.Get(i))
+		{
+			Format(menutext, sizeof(menutext), "%s (%t)", bossName, "FF2Boss Cant Chosse This Now");
+			itemflags |= ITEMDRAW_DISABLED;
+		}
 		else
+		{
 			Format(menutext, sizeof(menutext), "%s", bossName);
+		}
 
-		Format(menutext, sizeof(menutext), "%s", bossName);
 		AddMenuItem(dMenu, spcl, menutext, itemflags);
 	}
 	SetMenuExitButton(dMenu, true);
@@ -430,7 +617,7 @@ public Command_SetMyBossH(Handle menu, MenuAction action, int client, int item)
 				{
 					GetMenuItem(menu, item, text, sizeof(text));
 					int bossIndex = StringToInt(text);
-					KeyValues BossKV = FF2_GetCharacterKV(bossIndex);
+					KeyValues BossKV = GetCharacterKVEx(bossIndex);
 					GetCharacterName(BossKV, Incoming[client], MAX_NAME, 0);
 					GetCharacterName(BossKV, text, MAX_NAME, client);
 
@@ -444,12 +631,16 @@ public Command_SetMyBossH(Handle menu, MenuAction action, int client, int item)
 	}
 }
 
-public Action FF2_OnBossSelected(int boss, int& character, char[] characterName, bool preset)
+#if !defined _ff2_potry_included
+	public Action FF2_OnSpecialSelected(int boss, int &character, char[] characterName, bool preset)
+#else
+	public Action FF2_OnBossSelected(int boss, int &character, char[] characterName, bool preset)
+#endif
 {
 	if(preset) return Plugin_Continue;
 
 	new client = GetClientOfUserId(FF2_GetBossUserId(boss));
-	Handle BossKv = FF2_GetBossKV(boss);
+	Handle BossKv = GetCharacterKVEx(boss);
 	if (!boss && !StrEqual(Incoming[client], ""))
 	{
 		if(BossKv != INVALID_HANDLE)
@@ -476,11 +667,6 @@ public void Cvar_ChatCommand_Changed(ConVar cvar, const char[] oldValue, const c
 	ChangeChatCommand();
 }
 
-public void OnMapStart()
-{
-	ChangeChatCommand();
-}
-
 void ChangeChatCommand()
 {
 	g_iChatCommand = 0;
@@ -499,13 +685,22 @@ stock int FindBossIndexByName(const char[] bossName)
 {
 	char name[64];
 	KeyValues BossKV;
-	for (int loop = 0; (BossKV = FF2_GetCharacterKV(loop)) != null; loop++)
+	for (int loop = 0; (BossKV = GetCharacterKVEx(loop)) != null; loop++)
 	{
 		GetCharacterName(BossKV, name, 64, 0);
 		if(StrEqual(name, bossName)) return loop;
 	}
 
 	return -1;
+}
+
+KeyValues GetCharacterKVEx(int bossIndex)
+{
+	#if !defined _ff2_potry_included
+		return view_as<KeyValues>(FF2_GetSpecialKV(bossIndex, true));
+	#else
+		return FF2_GetCharacterKV(bossIndex);
+	#endif
 }
 
 public void GetCharacterName(KeyValues characterKv, char[] bossName, int size, const int client)
