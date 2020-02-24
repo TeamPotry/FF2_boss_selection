@@ -32,8 +32,13 @@ jobs:
           mkdir build
           
           spcomp -iinclude boss_selection.sp -o build/boss_selection.smx
-          rm ./include/ff2_potry.inc
+          rm -v ./include/ff2_potry.inc
           spcomp -iinclude boss_selection.sp -o build/boss_selection_v1.smx
 
-
+      - name: Upload plugin artifact
+        if: matrix.sm-version == '1.10'
+        uses: actions/upload-artifact@master
+        with:
+          name: Plugin
+          path: build/
       
