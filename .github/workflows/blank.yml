@@ -40,7 +40,6 @@ jobs:
           spcomp -iinclude boss_selection.sp -o build/boss_selection.smx
 
       - name: Upload plugin artifact
-        if: matrix.sm-version == '1.10'
         uses: actions/upload-artifact@master
         with:
           name: Plugin
