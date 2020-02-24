@@ -9,7 +9,7 @@
 ///
 #include <ff2_boss_selection>
 
-#define PLUGIN_VERSION "v2+1.001"
+#define PLUGIN_VERSION "v2(1.0)"
 #define MAX_NAME 64
 
 int g_iChatCommand;
