@@ -31,9 +31,9 @@ jobs:
         run: |
           mkdir build
           
-          spcomp boss_selection.sp -o build/boss_selection.smx
+          spcomp -iinclude boss_selection.sp -o build/boss_selection.smx
           rm ./include/ff2_potry.inc
-          spcomp boss_selection.sp -o build/boss_selection_v1.smx
+          spcomp -iinclude boss_selection.sp -o build/boss_selection_v1.smx
 
 
       
