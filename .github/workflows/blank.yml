@@ -20,9 +20,9 @@ jobs:
         uses: actions/checkout@master
       
       - name: Setup Include
+        working-directory: addons/sourcemod/scripting
         run: |      
           mkdir includes
-          ls
            
           wget https://raw.githubusercontent.com/TeamPotry/FF2_Fork/master/sourcemod/scripting/include/freak_fortress_2.inc -P includes
           wget https://raw.githubusercontent.com/TeamPotry/FF2_Fork/master/sourcemod/scripting/include/ff2_potry.inc -P includes
