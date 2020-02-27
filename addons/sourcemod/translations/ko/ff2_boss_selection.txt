@@ -52,4 +52,32 @@
     {
         "ko"    "이 맵에선 금지되었습니다!"
     }
+
+    "FF2Boss Info Health"
+    {
+        "#format"   "{1:d},{2:d}"
+        "ko"    "체력: {1}명 기준 > {2}"
+    }
+
+    "FF2Boss Info RageDamage"
+    {
+        "#format"   "{1:d}"
+        "ko"    "분노 충전률: {1} (피해량)"
+    }
+
+    "FF2Boss Info Speed"
+    {
+        "#format"   "{1:d}"
+        "ko"    "이동 속도: {1}"
+    }
+
+    "FF2Boss Info Select Boss"
+    {
+        "ko"    "이 보스 선택"
+    }
+
+    "FF2Boss Info View Description"
+    {
+        "ko"    "능력 설명 보기"
+    }
 }

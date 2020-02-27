@@ -52,4 +52,32 @@
     {
         "en"    "Banned for this map!"
     }
+
+    "FF2Boss Info Health"
+    {
+        "#format"   "{1:d},{2:d}"
+        "en"    "Health: {1} players > {2}"
+    }
+
+    "FF2Boss Info RageDamage"
+    {
+        "#format"   "{1:d}"
+        "en"    "Rage charge rate: {1} Damage"
+    }
+
+    "FF2Boss Info Speed"
+    {
+        "#format"   "{1:d}"
+        "en"    "Speed: {1}"
+    }
+
+    "FF2Boss Info Select Boss"
+    {
+        "en"    "Select This"
+    }
+
+    "FF2Boss Info View Description"
+    {
+        "en"    "View Description"
+    }
 }

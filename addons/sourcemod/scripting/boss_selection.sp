@@ -588,6 +588,8 @@ public Action Command_SetMyBoss(int client, int args)
 
 public Command_SetMyBossH(Handle menu, MenuAction action, int client, int item)
 {
+	bool isSkip = (GetClientButtons(client) & IN_RELOAD) > 0;
+
 	switch(action)
 	{
 		case MenuAction_End:
@@ -615,14 +617,165 @@ public Command_SetMyBossH(Handle menu, MenuAction action, int client, int item)
 				{
 					GetMenuItem(menu, item, text, sizeof(text));
 					int bossIndex = StringToInt(text);
+
+					if(isSkip)
+					{
+						KeyValues BossKV = GetCharacterKVEx(bossIndex);
+						GetCharacterName(BossKV, Incoming[client], MAX_NAME, 0);
+
+						SelectBoss(client, Incoming[client], bossIndex);
+					}
+					else
+					{
+						ViewBossInfo(client, bossIndex);
+					}
+				}
+			}
+		}
+	}
+}
+
+void ViewBossInfo(int client, int bossIndex)
+{
+	char realBossName[128], text[1024], temp[4];
+	KeyValues BossKV = GetCharacterKVEx(bossIndex);
+	int currentPlaying = 0, maxHealth, speed, rageDamage;
+
+	BossKV.Rewind();
+	GetCharacterName(BossKV, realBossName, MAX_NAME, client);
+
+	for(int target = 1; target <= MaxClients; target++)
+	{
+		if(IsValidClient(target) && TF2_GetClientTeam(target) > TFTeam_Spectator)
+		{
+			currentPlaying++;
+		}
+	}
+
+	#if !defined _ff2_potry_included
+		maxHealth = ParseFormula(bossIndex, "health_formula", RoundFloat(Pow((760.8+float(currentPlaying))*(float(currentPlaying)-1.0), 1.0341)+2046.0));
+		speed = BossKV.GetNum("maxspeed", 340);
+		rageDamage = BossKV.GetNum("ragedamage", 1900);
+	#else
+		maxHealth = ParseFormula(bossIndex, "health", RoundFloat(Pow((760.8+float(currentPlaying))*(float(currentPlaying)-1.0), 1.0341)+2046.0));
+		speed = BossKV.GetNum("speed", 340);
+		rageDamage = BossKV.GetNum("rage damage", 1900);
+	#endif
+
+	Menu menu = new Menu(BossInfo_Handler);
+
+	// Title (BossInfo)
+	Format(text, sizeof(text), "%s\n", realBossName);
+	Format(text, sizeof(text), "%s\n - %t", text, "FF2Boss Info Health", currentPlaying, maxHealth);
+	Format(text, sizeof(text), "%s\n - %t,", text, "FF2Boss Info RageDamage", rageDamage);
+	Format(text, sizeof(text), "%s %t", text, "FF2Boss Info Speed", speed);
+	menu.SetTitle(text);
+
+	// TODO: Rule 적용
+	Format(temp, sizeof(temp), "%d", bossIndex);
+	Format(text, sizeof(text), "%t", "FF2Boss Info Select Boss");
+	menu.AddItem(temp, text);
+
+	Format(text, sizeof(text), "%t", "FF2Boss Info View Description");
+	menu.AddItem(temp, text);
+
+	//
+	//	TODO: 서브 플러그인 지원
+	//
+
+	menu.ExitButton = true;
+
+	menu.Display(client, 90);
+}
+
+enum
+{
+	BossInfo_Select = 0,
+	BossInfo_ViewDescription,
+
+	BossInfo_Other
+};
+
+public int BossInfo_Handler(Menu menu, MenuAction action, int client, int selection)
+{
+	char text[4];
+
+	switch(action)
+	{
+		case MenuAction_End:
+		{
+			delete menu;
+		}
+		case MenuAction_Select:
+		{
+			SetGlobalTransTarget(client);
+
+			GetMenuItem(menu, selection, text, sizeof(text));
+			int bossIndex = StringToInt(text);
+
+			switch(selection)
+			{
+				case BossInfo_Select:
+				{
 					KeyValues BossKV = GetCharacterKVEx(bossIndex);
 					GetCharacterName(BossKV, Incoming[client], MAX_NAME, 0);
 
 					SelectBoss(client, Incoming[client], bossIndex);
 				}
+				case BossInfo_ViewDescription:
+				{
+					ViewBossDescription(client, bossIndex);
+				}
+
+				default:
+				{
+					//	TODO: 서브 플러그인 지원
+				}
 			}
 		}
 	}
+}
+
+void ViewBossDescription(int client, int bossIndex)
+{
+	char text[1024], langId[4], serverLangId[4], temp[4];
+	Menu menu = new Menu(BossInfo_Handler);
+
+	KeyValues BossKV = GetCharacterKVEx(bossIndex);
+
+	BossKV.Rewind();
+	GetLanguageInfo(GetClientLanguage(client), langId, 4);
+	GetLanguageInfo(GetServerLanguage(), serverLangId, 4);
+
+	#if !defined _ff2_potry_included
+		Format(text, sizeof(text), "description_%s", langId);
+		BossKV.GetString(text, text, sizeof(text), "");
+
+		if(text[0] == '\0')
+		{
+			Format(text, sizeof(text), "description_%s", serverLangId);
+			BossKV.GetString(text, text, sizeof(text), "");
+		}
+
+	#else
+		BossKV.JumpToKey("description", true);
+		BossKV.GetString(langId, text, sizeof(text), "");
+
+		if(text[0] == '\0')
+		{
+			BossKV.GetString(serverLangId, text, sizeof(text), "");
+		}
+	#endif
+	ReplaceString(text, sizeof(text), "\\n", "\n");
+
+	menu.SetTitle(text);
+
+	Format(temp, sizeof(temp), "%d", bossIndex);
+	Format(text, sizeof(text), "%t", "FF2Boss Info Select Boss");
+	menu.AddItem(temp, text);
+
+	menu.ExitButton = true;
+	menu.Display(client, 90);
 }
 
 void SelectBoss(int client, char[] bossName, int bossIndex = -1)
@@ -763,4 +916,293 @@ stock Handle FindCookieEx(char[] cookieName)
     }
 
     return cookieHandle;
+}
+
+// Copied from FF2
+
+enum Operators
+{
+	Operator_None=0,
+	Operator_Add,
+	Operator_Subtract,
+	Operator_Multiply,
+	Operator_Divide,
+	Operator_Exponent,
+};
+
+stock void Operate(ArrayList sumArray, int& bracket, float value, ArrayList _operator)
+{
+	float sum=sumArray.Get(bracket);
+	switch(_operator.Get(bracket))
+	{
+		case Operator_Add:
+		{
+			sumArray.Set(bracket, sum+value);
+		}
+		case Operator_Subtract:
+		{
+			sumArray.Set(bracket, sum-value);
+		}
+		case Operator_Multiply:
+		{
+			sumArray.Set(bracket, sum*value);
+		}
+		case Operator_Divide:
+		{
+			if(!value)
+			{
+				LogError("[FF2 Boss Selection] Detected a divide by 0!");
+				bracket=0;
+				return;
+			}
+			sumArray.Set(bracket, sum/value);
+		}
+		case Operator_Exponent:
+		{
+			sumArray.Set(bracket, Pow(sum, value));
+		}
+		default:
+		{
+			sumArray.Set(bracket, value);  //This means we're dealing with a constant
+		}
+	}
+	_operator.Set(bracket, Operator_None);
+}
+
+stock void OperateString(ArrayList sumArray, int& bracket, char[] value, int size, ArrayList _operator)
+{
+	if(!StrEqual(value, ""))  //Make sure 'value' isn't blank
+	{
+		Operate(sumArray, bracket, StringToFloat(value), _operator);
+		strcopy(value, size, "");
+	}
+}
+
+/*
+ * Parses a mathematical formula and returns the result,
+ * or `defaultValue` if there is an error while parsing
+ *
+ * Variables may be present in the formula as long as they
+ * are in the format `{variable}`.  Unknown variables will
+ * be passed to the `OnParseUnknownVariable` forward
+ *
+ * Known variables include:
+ * - players
+ * - lives
+ * - health
+ * - speed
+ *
+ * @param boss          Boss index
+ * @param key           The key to retrieve the formula from.  If the
+ *                      key is nested, the nested sections must be
+ *                      delimited by a `>` symbol like so:
+ *                      "plugin name > ability name > distance"
+ * @param defaultValue  The default value to return in case of error
+ * @return The value of the formula, or `defaultValue` in case of error
+ */
+stock int ParseFormula(int boss, const char[] key, int defaultValue)
+{
+	char formula[1024], bossName[64];
+	KeyValues kv = GetCharacterKVEx(boss);
+	int playing = 0, version;
+
+	for(int client = 1; client <= MaxClients; client++)
+	{
+		if(IsValidClient(client) && TF2_GetClientTeam(client) > TFTeam_Spectator)
+		{
+			playing++;
+		}
+	}
+
+	kv.Rewind();
+	kv.GetString("name", bossName, sizeof(bossName), "=Failed name=");
+	version = kv.GetNum("version", 1);
+
+	char keyPortions[5][128];
+	int portions=ExplodeString(key, ">", keyPortions, sizeof(keyPortions), 128);
+	for(int i = 1; i < portions; i++)
+	{
+		kv.JumpToKey(keyPortions[i]);
+	}
+	kv.GetString(keyPortions[portions-1], formula, sizeof(formula));
+
+	if(!formula[0])
+	{
+		return defaultValue;
+	}
+
+	if(version == 1)
+		ReplaceString(formula, sizeof(formula), "n", "{players}");
+
+	int size = 1;
+	int matchingBrackets;
+	for(int i; i <= strlen(formula); i++)  //Resize the arrays once so we don't have to worry about it later on
+	{
+		if(formula[i] == '(')
+		{
+			if(!matchingBrackets)
+			{
+				size++;
+			}
+			else
+			{
+				matchingBrackets--;
+			}
+		}
+		else if(formula[i] == ')')
+		{
+			matchingBrackets++;
+		}
+	}
+
+	ArrayList sumArray = CreateArray(_, size), _operator = CreateArray(_, size);
+	int bracket;  //Each bracket denotes a separate sum (within parentheses).  At the end, they're all added together to achieve the actual sum
+	bool escapeCharacter;
+	sumArray.Set(0, 0.0);  //TODO:  See if these can be placed naturally in the loop
+	_operator.Set(bracket, Operator_None);
+
+	char currentCharacter[2], value[16], variable[16];  //We don't decl these because we directly append characters to them and there's no point in decl'ing currentCharacter
+	for(int i; i <= strlen(formula); i++)
+	{
+		currentCharacter[0] = formula[i];  //Find out what the next char in the formula is
+		switch(currentCharacter[0])
+		{
+			case ' ', '\t':  //Ignore whitespace
+			{
+				continue;
+			}
+			case '(':
+			{
+				bracket++;  //We've just entered a new parentheses so increment the bracket value
+				sumArray.Set(bracket, 0.0);
+				_operator.Set(bracket, Operator_None);
+			}
+			case ')':
+			{
+				OperateString(sumArray, bracket, value, sizeof(value), _operator);
+				if(_operator.Get(bracket) != Operator_None)  //Something like (5*)
+				{
+					LogError("[FF2 Boss Selection] %s's %s formula has an invalid operator at character %i", bossName, key, i + 1);
+					delete sumArray;
+					delete _operator;
+					return defaultValue;
+				}
+
+				if(--bracket<0)  //Something like (5))
+				{
+					LogError("[FF2 Boss Selection] %s's %s formula has an unbalanced parentheses at character %i", bossName, key, i + 1);
+					delete sumArray;
+					delete _operator;
+					return defaultValue;
+				}
+
+				Operate(sumArray, bracket, GetArrayCell(sumArray, bracket + 1), _operator);
+			}
+			case '\0':  //End of formula
+			{
+				OperateString(sumArray, bracket, value, sizeof(value), _operator);
+			}
+			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.':
+			{
+				StrCat(value, sizeof(value), currentCharacter);  //Constant?  Just add it to the current value
+			}
+			/*case 'n', 'x':  //n and x denote player variables
+			{
+				Operate(sumArray, bracket, float(playing), _operator);
+			}*/
+			case '{':
+			{
+				escapeCharacter=true;
+			}
+			case '}':
+			{
+				if(!escapeCharacter)
+				{
+					LogError("[FF2 Boss Selection] %s's %s formula has an invalid escape character at character %i", bossName, key, i+1);
+					delete sumArray;
+					delete _operator;
+					return defaultValue;
+				}
+				escapeCharacter=false;
+
+				if(StrEqual(variable, "players", false))
+				{
+					Operate(sumArray, bracket, float(playing), _operator);
+				}
+				/*
+				else if(StrEqual(variable, "health", false))
+				{
+					Operate(sumArray, bracket, float(BossHealth), _operator);
+				}
+				else if(StrEqual(variable, "lives", false))
+				{
+					Operate(sumArray, bracket, float(BossLives), _operator);
+				}
+				else if(StrEqual(variable, "speed", false))
+				{
+					Operate(sumArray, bracket, BossSpeed, _operator);
+				}
+				*/
+
+				Format(variable, sizeof(variable), ""); // Reset the variable holder
+			}
+			case '+', '-', '*', '/', '^':
+			{
+				OperateString(sumArray, bracket, value, sizeof(value), _operator);
+				switch(currentCharacter[0])
+				{
+					case '+':
+					{
+						_operator.Set(bracket, Operator_Add);
+					}
+					case '-':
+					{
+						_operator.Set(bracket, Operator_Subtract);
+					}
+					case '*':
+					{
+						_operator.Set(bracket, Operator_Multiply);
+					}
+					case '/':
+					{
+						_operator.Set(bracket, Operator_Divide);
+					}
+					case '^':
+					{
+						_operator.Set(bracket, Operator_Exponent);
+					}
+				}
+			}
+			default:
+			{
+				if(escapeCharacter)  //Absorb all the characters into 'variable' if we hit an escape character
+				{
+					StrCat(variable, sizeof(variable), currentCharacter);
+				}
+				else
+				{
+					LogError("[FF2 Boss Selection] %s's %s formula has an invalid character at character %i", bossName, key, i + 1);
+					delete sumArray;
+					delete _operator;
+					return defaultValue;
+				}
+			}
+		}
+	}
+
+	int result = RoundFloat(GetArrayCell(sumArray, 0));
+	delete sumArray;
+	delete _operator;
+	if(result<=0)
+	{
+		LogError("[FF2 Boss Selection] %s has an invalid %s formula, using default!", bossName, key);
+		return defaultValue;
+	}
+/*
+	if(bMedieval && StrEqual(key, "health"))
+	{
+		return RoundFloat(result / 3.6);  //TODO: Make this configurable
+	}
+*/
+	return result;
 }
