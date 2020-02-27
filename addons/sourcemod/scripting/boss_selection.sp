@@ -604,12 +604,7 @@ public Command_SetMyBossH(Handle menu, MenuAction action, int client, int item)
 				case 0:
 				{
 					Incoming[client] = "";
-
-					FF2BossCookie.SetSavedIncoming(client, Incoming[client]);
-					FF2BossCookie.SetSavedIncomeIndex(client, -1);
-					Format(text, sizeof(text), "%t", "FF2Boss Menu Random");
-					CReplyToCommand(client, "{olive}[FF2]{default} %t", "FF2Boss Selected", text);
-					FF2BossCookie.SetSavedQueuePoints(client, -1);
+					SelectBoss(client, "Random", -1);
 				}
 				case 1:
 				{
@@ -622,15 +617,36 @@ public Command_SetMyBossH(Handle menu, MenuAction action, int client, int item)
 					int bossIndex = StringToInt(text);
 					KeyValues BossKV = GetCharacterKVEx(bossIndex);
 					GetCharacterName(BossKV, Incoming[client], MAX_NAME, 0);
-					GetCharacterName(BossKV, text, MAX_NAME, client);
 
-					FF2BossCookie.SetSavedIncoming(client, Incoming[client]);
-					FF2BossCookie.SetSavedIncomeIndex(client, bossIndex);
-					CReplyToCommand(client, "{olive}[FF2]{default} %t", "FF2Boss Selected", text);
-					FF2BossCookie.SetSavedQueuePoints(client, -1);
+					SelectBoss(client, Incoming[client], bossIndex);
 				}
 			}
 		}
+	}
+}
+
+void SelectBoss(int client, char[] bossName, int bossIndex = -1)
+{
+	char text[256];
+
+	if(bossIndex == -1)
+	{
+		FF2BossCookie.SetSavedIncoming(client, "");
+		FF2BossCookie.SetSavedIncomeIndex(client, -1);
+		Format(text, sizeof(text), "%t", "FF2Boss Menu Random");
+		CReplyToCommand(client, "{olive}[FF2]{default} %t", "FF2Boss Selected", text);
+		FF2BossCookie.SetSavedQueuePoints(client, -1);
+	}
+	else
+	{
+		char realBossName[MAX_NAME];
+		KeyValues BossKV = GetCharacterKVEx(bossIndex);
+		GetCharacterName(BossKV, realBossName, MAX_NAME, client);
+
+		FF2BossCookie.SetSavedIncoming(client, bossName);
+		FF2BossCookie.SetSavedIncomeIndex(client, bossIndex);
+		CReplyToCommand(client, "{olive}[FF2]{default} %t", "FF2Boss Selected", realBossName);
+		FF2BossCookie.SetSavedQueuePoints(client, -1);
 	}
 }
 
