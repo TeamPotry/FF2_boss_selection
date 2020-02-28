@@ -5,10 +5,7 @@
 #include <clientprefs>
 ///
 #include <freak_fortress_2>
-
-#undef REQUIRE_PLUGIN
 #tryinclude <ff2_potry>
-#define REQUIRE_PLUGIN
 ///
 #include <ff2_boss_selection>
 
@@ -418,11 +415,14 @@ public Action FF2_OnCheckSelectRules(int client, int characterIndex, const char[
 	}
 	*/
 	if(StrEqual(ruleName, "blocked"))	return Plugin_Handled;
+
+#if defined _ff2_potry_included
 	if(StrEqual(ruleName, "creator"))
 	{
 		int flags = FF2_GetBossCreatorFlags(authId, characterIndex, true);
 		return flags > 0 ? Plugin_Continue : Plugin_Handled;
 	}
+#endif
 
 	return Plugin_Continue;
 }
