@@ -35,8 +35,6 @@ jobs:
         working-directory: addons/sourcemod/scripting
         run: |
           mkdir build
-          
-          wget https://raw.githubusercontent.com/TeamPotry/FF2_Fork/master/sourcemod/scripting/include/ff2_potry.inc -P include
           spcomp -iinclude boss_selection.sp -o build/boss_selection.smx
 
       - name: Upload plugin artifact
