@@ -683,6 +683,7 @@ void ViewBossInfo(int client, int bossIndex)
 	//
 
 	menu.ExitButton = true;
+	menu.ExitBackButton = true;
 
 	menu.Display(client, 90);
 }
@@ -704,6 +705,11 @@ public int BossInfo_Handler(Menu menu, MenuAction action, int client, int select
 		case MenuAction_End:
 		{
 			delete menu;
+		}
+		case MenuAction_Cancel:
+		{
+			if(selection == MenuCancel_ExitBack)
+				Command_SetMyBoss(client, 0);
 		}
 		case MenuAction_Select:
 		{
@@ -738,8 +744,7 @@ public int BossInfo_Handler(Menu menu, MenuAction action, int client, int select
 void ViewBossDescription(int client, int bossIndex)
 {
 	char text[1024], langId[4], serverLangId[4], temp[4];
-	Menu menu = new Menu(BossInfo_Handler);
-
+	Menu menu = new Menu(BossDescription_Handler);
 	KeyValues BossKV = GetCharacterKVEx(bossIndex);
 
 	BossKV.Rewind();
@@ -774,7 +779,44 @@ void ViewBossDescription(int client, int bossIndex)
 	menu.AddItem(temp, text);
 
 	menu.ExitButton = true;
+	menu.ExitBackButton = true;
+
 	menu.Display(client, 90);
+}
+
+public int BossDescription_Handler(Menu menu, MenuAction action, int client, int selection)
+{
+	SetGlobalTransTarget(client);
+	char text[4];
+
+	GetMenuItem(menu, selection, text, sizeof(text));
+	int bossIndex = StringToInt(text);
+
+	switch(action)
+	{
+		case MenuAction_End:
+		{
+			delete menu;
+		}
+		case MenuAction_Cancel:
+		{
+			if(selection == MenuCancel_ExitBack)
+				ViewBossInfo(client, bossIndex);
+		}
+		case MenuAction_Select:
+		{
+			switch(selection)
+			{
+				case BossInfo_Select:
+				{
+					KeyValues BossKV = GetCharacterKVEx(bossIndex);
+					GetCharacterName(BossKV, Incoming[client], MAX_NAME, 0);
+
+					SelectBoss(client, Incoming[client], bossIndex);
+				}
+			}
+		}
+	}
 }
 
 void SelectBoss(int client, char[] bossName, int bossIndex = -1)
