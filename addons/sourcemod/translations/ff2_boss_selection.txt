@@ -80,4 +80,9 @@
     {
         "en"    "View Description"
     }
+
+    "FF2Boss Skip Tip"
+    {
+        "en"    "Press RELOAD + Select: Skip view info"
+    }
 }

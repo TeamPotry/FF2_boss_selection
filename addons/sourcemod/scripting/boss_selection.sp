@@ -467,23 +467,22 @@ public Action Command_SetMyBoss(int client, int args)
 
 	SetGlobalTransTarget(client);
 
+	Format(menutext, sizeof(menutext), "%t\n", "FF2Boss Skip Tip");
 	if(!FF2BossCookie.IsPlayBoss(client))
 	{
-		Format(menutext, sizeof(menutext), "%t", "FF2Boss Dont Play Boss");
+		Format(menutext, sizeof(menutext), "%s\n%t", menutext, "FF2Boss Dont Play Boss");
 		Format(menutext, sizeof(menutext), "%s\n%t", menutext, "FF2Boss Saved QueuePoints", FF2BossCookie.GetSavedQueuePoints(client));
-		SetMenuTitle(dMenu, menutext);
 	}
 	else if(BossKV == null)
 	{
-		Format(menutext, sizeof(menutext), "%t", "FF2Boss Menu Random");
-		SetMenuTitle(dMenu, "%t", "FF2Boss Menu Title", menutext);
+		Format(menutext, sizeof(menutext), "%s\n%t", menutext, "FF2Boss Menu Random");
 	}
 	else
 	{
 		GetCharacterName(BossKV, bossName, MAX_NAME, client);
-		Format(menutext, sizeof(menutext), "%s", bossName);
-		SetMenuTitle(dMenu, "%t", "FF2Boss Menu Title", menutext);
+		Format(menutext, sizeof(menutext), "%s\n%t", menutext, "FF2Boss Menu Title", bossName);
 	}
+	SetMenuTitle(dMenu, menutext);
 
 	Format(menutext, sizeof(menutext), "%t", "FF2Boss Menu Random");
 	AddMenuItem(dMenu, "Random Boss", menutext);
