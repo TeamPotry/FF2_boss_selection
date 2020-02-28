@@ -638,7 +638,7 @@ void ViewBossInfo(int client, int bossIndex)
 {
 	char realBossName[128], text[1024], temp[4];
 	KeyValues BossKV = GetCharacterKVEx(bossIndex);
-	int currentPlaying = 0, maxHealth, speed, rageDamage;
+	int currentPlaying = 0, maxHealth, speed, rageDamage, lives;
 
 	BossKV.Rewind();
 	GetCharacterName(BossKV, realBossName, MAX_NAME, client);
@@ -655,10 +655,12 @@ void ViewBossInfo(int client, int bossIndex)
 		maxHealth = ParseFormula(bossIndex, "health_formula", RoundFloat(Pow((760.8+float(currentPlaying))*(float(currentPlaying)-1.0), 1.0341)+2046.0));
 		speed = BossKV.GetNum("maxspeed", 340);
 		rageDamage = BossKV.GetNum("ragedamage", 1900);
+		lives = BossKV.GetNum("lives", 1);
 	#else
 		maxHealth = ParseFormula(bossIndex, "health", RoundFloat(Pow((760.8+float(currentPlaying))*(float(currentPlaying)-1.0), 1.0341)+2046.0));
 		speed = BossKV.GetNum("speed", 340);
 		rageDamage = BossKV.GetNum("rage damage", 1900);
+		lives = BossKV.GetNum("lives", 1);
 	#endif
 
 	Menu menu = new Menu(BossInfo_Handler);
@@ -666,6 +668,10 @@ void ViewBossInfo(int client, int bossIndex)
 	// Title (BossInfo)
 	Format(text, sizeof(text), "%s\n", realBossName);
 	Format(text, sizeof(text), "%s\n - %t", text, "FF2Boss Info Health", currentPlaying, maxHealth);
+
+	if(lives > 1)
+		Format(text, sizeof(text), "%s × %d", text, lives);
+
 	Format(text, sizeof(text), "%s\n - %t,", text, "FF2Boss Info RageDamage", rageDamage);
 	Format(text, sizeof(text), "%s %t", text, "FF2Boss Info Speed", speed);
 	menu.SetTitle(text);
