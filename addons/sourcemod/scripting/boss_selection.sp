@@ -475,7 +475,8 @@ public Action Command_SetMyBoss(int client, int args)
 	}
 	else if(BossKV == null)
 	{
-		Format(menutext, sizeof(menutext), "%s\n%t", menutext, "FF2Boss Menu Random");
+		Format(bossName, sizeof(bossName), "%t", "FF2Boss Menu Random");
+		Format(menutext, sizeof(menutext), "%s\n%t", menutext, "FF2Boss Menu Title", bossName);
 	}
 	else
 	{
