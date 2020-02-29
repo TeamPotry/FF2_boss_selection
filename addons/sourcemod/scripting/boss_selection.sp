@@ -588,8 +588,6 @@ public Action Command_SetMyBoss(int client, int args)
 
 public Command_SetMyBossH(Handle menu, MenuAction action, int client, int item)
 {
-	bool isSkip = (GetClientButtons(client) & IN_RELOAD) > 0;
-
 	switch(action)
 	{
 		case MenuAction_End:
@@ -599,6 +597,8 @@ public Command_SetMyBossH(Handle menu, MenuAction action, int client, int item)
 
 		case MenuAction_Select:
 		{
+			bool isSkip = (GetClientButtons(client) & IN_RELOAD) > 0;
+
 			SetGlobalTransTarget(client);
 			char text[200];
 			switch(item)
