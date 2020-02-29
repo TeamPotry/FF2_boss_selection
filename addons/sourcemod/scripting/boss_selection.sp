@@ -671,7 +671,7 @@ void ViewBossInfo(int client, int bossIndex)
 
 	Format(text, sizeof(text), "%s\n - %t", text, "FF2Boss Info Health", currentPlaying, maxHealth);
 	if(lives > 1)
-		Format(text, sizeof(text), "%s × %d", text, lives);
+		Format(text, sizeof(text), "%s x%d", text, lives);
 
 	Format(text, sizeof(text), "%s\n - %t,", text, "FF2Boss Info RageDamage", rageDamage);
 	Format(text, sizeof(text), "%s %t", text, "FF2Boss Info Speed", speed);
