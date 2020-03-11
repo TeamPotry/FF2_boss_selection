@@ -26,12 +26,56 @@ Handle OnCheckSelectRules;
 KeyValues RotationInfo;
 ArrayList RotationIndexArray;
 
+GlobalForward InfoMenuReady, InfoMenuCreated;
+ArrayList AdditionalInfoMenuList;
+
 public Plugin:myinfo = {
 	name = "Freak Fortress 2: Boss Selection EX",
 	description = "Allows players select their bosses by /ff2boss (2.0.0+)",
 	author = "Nopied◎",
 	version = PLUGIN_VERSION,
 };
+
+enum
+{
+	InfoMenu_TranslationName = 0,
+	// InfoMenu_PluginHandle,
+	InfoMenu_FunctionName
+};
+
+methodmap AdditionalInfoMenu < ArrayList {
+	public static native AdditionalInfoMenu Create(const char[] translationName, const char[] functionName);
+
+	public void GetTranslationName(char[] translationName, int buffer)
+	{
+		this.GetString(InfoMenu_TranslationName, translationName, buffer);
+	}
+
+	public void SetTranslationName(const char[] translationName)
+	{
+		this.SetString(InfoMenu_TranslationName, translationName);
+	}
+
+	public void GetFunctionName(char[] functionName, int buffer)
+	{
+		this.GetString(InfoMenu_FunctionName, functionName, buffer);
+	}
+
+	public void SetFunctionName(const char[] functionName)
+	{
+		this.SetString(InfoMenu_FunctionName, functionName);
+	}
+/*
+	property Handle PluginHandle {
+		public get() {
+			return this.Get(InfoMenu_PluginHandle);
+		}
+		public set(Handle plugin) {
+			this.Set(InfoMenu_PluginHandle, plugin);
+		}
+	}
+*/
+}
 
 methodmap FF2BossCookie {
 	public static Handle FindBossCookie(const char[] characterSet)
@@ -160,9 +204,55 @@ methodmap FF2BossCookie {
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
 {
 	OnCheckSelectRules = CreateGlobalForward("FF2_OnCheckSelectRules", ET_Hook, Param_Cell, Param_Cell, Param_String, Param_String); // Client, characterIndex, Rule String, value;
+	InfoMenuReady = new GlobalForward("FF2Selection_InfoMenuReady", ET_Ignore);
+	InfoMenuCreated = new GlobalForward("FF2Selection_OnInfoMenuCreated", ET_Ignore, Param_Cell, Param_String, Param_Cell);
+
+	CreateNative("AdditionalInfoMenu.Create", Native_AdditionalInfoMenu_Create);
+
+	CreateNative("FF2Selection_ViewInfoMenu", Native_ViewInfoMenu);
+	CreateNative("FF2Selection_LoadTranslations", Native_LoadTranslations);
+	CreateNative("FF2Selection_AddInfoMenu", Native_AddInfoMenu);
 
 	MarkNativeAsOptional("FF2_GetSpecialKV");
 	return APLRes_Success;
+}
+
+public int Native_AdditionalInfoMenu_Create(Handle plugin, int numParams)
+{
+	char translationName[128], functionName[128];
+
+	AdditionalInfoMenu array = view_as<AdditionalInfoMenu>(new ArrayList(128));
+
+	GetNativeString(1, translationName, 128);
+	array.PushString(translationName);
+
+	GetNativeString(2, functionName, 128);
+	array.PushString(functionName);
+
+	return view_as<int>(array);
+}
+
+public int Native_ViewInfoMenu(Handle plugin, int numParams)
+{
+	ViewBossInfo(GetNativeCell(1), GetNativeCell(2));
+}
+
+public int Native_LoadTranslations(Handle plugin, int numParams)
+{
+	char file[PLATFORM_MAX_PATH];
+	GetNativeString(1, file, PLATFORM_MAX_PATH);
+
+	LoadTranslations(file);
+}
+
+public int Native_AddInfoMenu(Handle plugin, int numParams)
+{
+	char translationName[128], functionName[128];
+	GetNativeString(1, translationName, 128);
+	GetNativeString(2, functionName, 128);
+
+	AdditionalInfoMenu item = AdditionalInfoMenu.Create(translationName, functionName);
+	AdditionalInfoMenuList.Push(item);
 }
 
 public void OnPluginStart()
@@ -189,6 +279,17 @@ public void OnPluginStart()
 	ChangeChatCommand();
 
 	RotationIndexArray = new ArrayList();
+	AdditionalInfoMenuList = new ArrayList(); // TODO: 맵 체인지 이후에 함수 주소 변경 여부 조사
+
+	RegPluginLibrary("ff2_boss_selection");
+}
+
+void ReloadAdditionalInfoMenuList()
+{
+	AdditionalInfoMenuList.Resize(0);
+
+	Call_StartForward(InfoMenuReady);
+	Call_Finish();
 }
 
 public void OnMapStart()
@@ -637,7 +738,7 @@ public Command_SetMyBossH(Handle menu, MenuAction action, int client, int item)
 
 void ViewBossInfo(int client, int bossIndex)
 {
-	char realBossName[128], text[1024], temp[4];
+	char realBossName[128], text[1024], temp[128];
 	KeyValues BossKV = GetCharacterKVEx(bossIndex);
 	int currentPlaying = 0, maxHealth, speed, rageDamage, lives;
 
@@ -685,9 +786,19 @@ void ViewBossInfo(int client, int bossIndex)
 	Format(text, sizeof(text), "%t", "FF2Boss Info View Description");
 	menu.AddItem(temp, text);
 
-	//
-	//	TODO: 서브 플러그인 지원
-	//
+	ReloadAdditionalInfoMenuList();
+	int length = AdditionalInfoMenuList.Length;
+	AdditionalInfoMenu infoMenu;
+	for(int loop = 0; loop < length; loop++)
+	{
+		infoMenu = AdditionalInfoMenuList.Get(loop);
+
+		infoMenu.GetTranslationName(text, 128);
+		infoMenu.GetFunctionName(temp, 128);
+
+		Format(text, sizeof(text), "%t", text);
+		menu.AddItem(temp, text);
+	}
 
 	menu.ExitButton = true;
 	menu.ExitBackButton = true;
@@ -705,7 +816,7 @@ enum
 
 public int BossInfo_Handler(Menu menu, MenuAction action, int client, int selection)
 {
-	char text[4];
+	char bossName[4], text[128];
 
 	switch(action)
 	{
@@ -721,17 +832,16 @@ public int BossInfo_Handler(Menu menu, MenuAction action, int client, int select
 		case MenuAction_Select:
 		{
 			SetGlobalTransTarget(client);
+			GetMenuItem(menu, BossInfo_Select, bossName, sizeof(bossName));
 
-			GetMenuItem(menu, selection, text, sizeof(text));
-			int bossIndex = StringToInt(text);
+			int bossIndex = StringToInt(bossName);
+			KeyValues BossKV = GetCharacterKVEx(bossIndex);
 
 			switch(selection)
 			{
 				case BossInfo_Select:
 				{
-					KeyValues BossKV = GetCharacterKVEx(bossIndex);
 					GetCharacterName(BossKV, Incoming[client], MAX_NAME, 0);
-
 					SelectBoss(client, Incoming[client], bossIndex);
 				}
 				case BossInfo_ViewDescription:
@@ -742,6 +852,15 @@ public int BossInfo_Handler(Menu menu, MenuAction action, int client, int select
 				default:
 				{
 					//	TODO: 서브 플러그인 지원
+					GetMenuItem(menu, selection, text, sizeof(text));
+
+					Call_StartForward(InfoMenuCreated);
+					Call_PushCell(client);
+					Call_PushStringEx(text, sizeof(text), SM_PARAM_STRING_UTF8 | SM_PARAM_STRING_COPY, SM_PARAM_COPYBACK);
+					Call_PushCell(bossIndex);
+
+					Call_Finish();
+
 				}
 			}
 		}
@@ -784,6 +903,21 @@ void ViewBossDescription(int client, int bossIndex)
 	Format(temp, sizeof(temp), "%d", bossIndex);
 	Format(text, sizeof(text), "%t", "FF2Boss Info Select Boss");
 	menu.AddItem(temp, text);
+	menu.AddItem(temp, text, ITEMDRAW_IGNORE);
+
+	ReloadAdditionalInfoMenuList();
+	int length = AdditionalInfoMenuList.Length;
+	AdditionalInfoMenu infoMenu;
+	for(int loop = 0; loop < length; loop++)
+	{
+		infoMenu = AdditionalInfoMenuList.Get(loop);
+
+		infoMenu.GetTranslationName(text, 128);
+		infoMenu.GetFunctionName(temp, 128);
+
+		Format(text, sizeof(text), "%t", text);
+		menu.AddItem(temp, text);
+	}
 
 	menu.ExitButton = true;
 	menu.ExitBackButton = true;
