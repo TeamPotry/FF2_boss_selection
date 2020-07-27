@@ -28,7 +28,7 @@ Handle OnCheckSelectRules;
 KeyValues RotationInfo;
 ArrayList RotationIndexArray;
 
-GlobalForward InfoMenuReady, InfoMenuCreated;
+Handle InfoMenuReady, InfoMenuCreated;
 ArrayList AdditionalInfoMenuList;
 
 public Plugin:myinfo = {
@@ -224,8 +224,8 @@ methodmap FF2BossCookie {
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
 {
 	OnCheckSelectRules = CreateGlobalForward("FF2_OnCheckSelectRules", ET_Hook, Param_Cell, Param_Cell, Param_String, Param_String); // Client, characterIndex, Rule String, value;
-	InfoMenuReady = new GlobalForward("FF2Selection_InfoMenuReady", ET_Ignore);
-	InfoMenuCreated = new GlobalForward("FF2Selection_OnInfoMenuCreated", ET_Ignore, Param_Cell, Param_String, Param_Cell);
+	InfoMenuReady = CreateGlobalForward("FF2Selection_InfoMenuReady", ET_Ignore);
+	InfoMenuCreated = CreateGlobalForward("FF2Selection_OnInfoMenuCreated", ET_Ignore, Param_Cell, Param_String, Param_Cell);
 
 	CreateNative("AdditionalInfoMenu.Create", Native_AdditionalInfoMenu_Create);
 
@@ -1070,6 +1070,13 @@ void SelectBoss(int client, char[] bossName, int bossIndex = -1)
 
 			if(!StrContains(banMaps, map, false))
 			{
+				if(!AreClientCookiesCached(client))
+				{
+					// 보스 설정이 로딩되기 전, 보스 플레이 시작 시에 안내
+					SetGlobalTransTarget(client);
+					CPrintToChat(client, "{olive}[FF2]{default} %t", "FF2Boss Playing Before Load PlayerData");
+				}
+
 				return Plugin_Continue;
 			}
 		}
