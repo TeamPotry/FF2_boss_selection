@@ -19,7 +19,7 @@ char g_strCurrentCharacter[64];
 char Incoming[MAXPLAYERS+1][64];
 char g_strChatCommand[42][50];
 
-Handle g_hCvarChatCommand;
+ConVar g_hCvarChatCommand;
 
 Handle OnCheckSelectRules;
 
@@ -277,6 +277,7 @@ public void OnPluginStart()
 	LoadTranslations("ff2_boss_selection");
 
 	ChangeChatCommand();
+	g_hCvarChatCommand.AddChangeHook(CvarChange);
 
 	RotationIndexArray = new ArrayList();
 	AdditionalInfoMenuList = new ArrayList(); // TODO: 맵 체인지 이후에 함수 주소 변경 여부 조사
@@ -1021,7 +1022,7 @@ void SelectBoss(int client, char[] bossName, int bossIndex = -1)
 	return Plugin_Continue;
 }
 
-public void Cvar_ChatCommand_Changed(ConVar cvar, const char[] oldValue, const char[] newValue)
+public void CvarChange(ConVar cvar, const char[] oldValue, const char[] newValue)
 {
 	ChangeChatCommand();
 }
