@@ -475,7 +475,7 @@ public Action FF2_OnAddQueuePoints(int add_points[MAXPLAYERS+1])
 {
 	for (int client = 1; client <= MaxClients; client++)
 	{
-		if(IsValidClient(client) && !IsBoss(client))
+		if(IsValidClient(client) && !IsBoss(client) && AreClientCookiesCached(client))
 		{
 			if(!FF2BossCookie.IsPlayBoss(client))
 			{
@@ -528,15 +528,14 @@ public Action FF2_OnCheckSelectRules(int client, int characterIndex, const char[
 	return Plugin_Continue;
 }
 
-
-public void OnClientPutInServer(client)
+public void OnClientConnected(int client)
 {
 	Incoming[client] = "";
+}
 
-	if(AreClientCookiesCached(client))
-	{
-		FF2BossCookie.InitializeData(client);
-	}
+public void OnClientCookiesCached(int client)
+{
+	FF2BossCookie.InitializeData(client);
 }
 
 public Action Command_SetMyBoss(int client, int args)
@@ -544,6 +543,12 @@ public Action Command_SetMyBoss(int client, int args)
 	if (client == 0)
 	{
 		ReplyToCommand(client, "[SM] %t", "FF2Boss InGame Only");
+		return Plugin_Handled;
+	}
+
+	if (!AreClientCookiesCached(client))
+	{
+		CPrintToChat(client, "{olive}[FF2]{default} %t", "FF2Boss Loading PlayerData");
 		return Plugin_Handled;
 	}
 
