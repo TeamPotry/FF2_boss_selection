@@ -20,7 +20,9 @@ char Incoming[MAXPLAYERS+1][64];
 char g_strChatCommand[42][50];
 
 ConVar g_hCvarChatCommand;
+ConVar cvarBossPlayedCount;
 
+Handle g_hPlayedCountCookie;
 Handle OnCheckSelectRules;
 
 KeyValues RotationInfo;
@@ -178,6 +180,24 @@ methodmap FF2BossCookie {
 		delete bossCookie;
 	}
 
+	public static int GetSavedPlayedCount(int client)
+	{
+		char tempStr[24];
+		GetClientCookie(client, g_hPlayedCountCookie, tempStr, sizeof(tempStr));
+
+		if(tempStr[0] == '\0')
+			return 0;
+
+		return StringToInt(tempStr);
+	}
+
+	public static void SetSavedPlayedCount(int client, int count)
+	{
+		char tempStr[24];
+		IntToString(count, tempStr, 24);
+		SetClientCookie(client, g_hPlayedCountCookie, tempStr);
+	}
+
 	public static bool IsPlayBoss(int client)
 	{
 		return FF2BossCookie.GetSavedQueuePoints(client) <= -1;
@@ -266,8 +286,10 @@ public void OnPluginStart()
 	}
 
 	g_hCvarChatCommand = CreateConVar("ff2_bossselection_chatcommand", "ff2boss,boss,보스,보스선택");
+	cvarBossPlayedCount = CreateConVar("ff2_bossselection_playpoint", "0", "0 - Disable, else: enabled, This cvar value is will be the price of select bosses.", _, true, 0.0, false);
 
 	HookEvent("teamplay_round_start", OnRoundStart);
+	HookEvent("player_death", OnPlayerDeath);
 
 	AddCommandListener(Listener_Say, "say");
 	AddCommandListener(Listener_Say, "say_team");
@@ -278,9 +300,12 @@ public void OnPluginStart()
 
 	ChangeChatCommand();
 	g_hCvarChatCommand.AddChangeHook(CvarChange);
+	// cvarBossPlayedCount.AddChangeHook(CvarChange);
 
 	RotationIndexArray = new ArrayList();
 	AdditionalInfoMenuList = new ArrayList(); // TODO: 맵 체인지 이후에 함수 주소 변경 여부 조사
+
+	g_hPlayedCountCookie = RegClientCookie("ff2_boss_played_count", "", CookieAccess_Protected);
 
 	RegPluginLibrary("ff2_boss_selection");
 }
@@ -309,6 +334,17 @@ public Action OnRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	if(RotationIndexArray == null)
 		ResetRotationArray(g_strCurrentCharacter);
+}
+
+public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
+{
+	int attacker = GetClientOfUserId(event.GetInt("attacker")), client = GetClientOfUserId(event.GetInt("userid"));
+	if(!IsValidClient(client) || !IsValidClient(client)
+	|| IsFakeClient(attacker) || IsFakeClient(client)) 	return Plugin_Continue;
+	else if(!IsBoss(attacker))						 	return Plugin_Continue;
+
+	FF2BossCookie.SetSavedPlayedCount(attacker, FF2BossCookie.GetSavedPlayedCount(client) + 1);
+	return Plugin_Continue;
 }
 
 public Action Listener_Say(int client, const char[] command, int argc)
@@ -541,6 +577,8 @@ public void OnClientCookiesCached(int client)
 
 public Action Command_SetMyBoss(int client, int args)
 {
+	SetGlobalTransTarget(client);
+
 	if (client == 0)
 	{
 		ReplyToCommand(client, "[SM] %t", "FF2Boss InGame Only");
@@ -570,11 +608,21 @@ public Action Command_SetMyBoss(int client, int args)
 	char menutext[MAX_NAME*2], bossName[MAX_NAME];
 	KeyValues BossKV;
 	Handle dMenu = CreateMenu(Command_SetMyBossH);
+	int pointPrice = cvarBossPlayedCount.IntValue, playerPoint = FF2BossCookie.GetSavedPlayedCount(client);
 	BossKV = GetCharacterKVEx(FF2BossCookie.GetSavedIncomeIndex(client));
 
-	SetGlobalTransTarget(client);
 
-	Format(menutext, sizeof(menutext), "%t\n", "FF2Boss Skip Tip");
+	if(!pointPrice)
+		Format(menutext, sizeof(menutext), "%t\n", "FF2Boss Skip Tip");
+	else {
+		Format(menutext, sizeof(menutext), "%t", "FF2Boss Info Select Boss (Played Point)", playerPoint, playerPoint - pointPrice, pointPrice);
+		if(playerPoint - pointPrice < 0)
+		{
+			Format(menutext, sizeof(menutext), "%s\n%t", menutext, "FF2Boss Not Enough Played Point");
+		}
+	}
+
+
 	if(!FF2BossCookie.IsPlayBoss(client))
 	{
 		Format(menutext, sizeof(menutext), "%s\n%t", menutext, "FF2Boss Dont Play Boss");
@@ -724,8 +772,9 @@ public Command_SetMyBossH(Handle menu, MenuAction action, int client, int item)
 				{
 					GetMenuItem(menu, item, text, sizeof(text));
 					int bossIndex = StringToInt(text);
+					bool hasPlayedPoint = cvarBossPlayedCount.IntValue > 0;
 
-					if(isSkip)
+					if(isSkip && !hasPlayedPoint)
 					{
 						KeyValues BossKV = GetCharacterKVEx(bossIndex);
 						GetCharacterName(BossKV, Incoming[client], MAX_NAME, 0);
@@ -747,6 +796,7 @@ void ViewBossInfo(int client, int bossIndex)
 	char realBossName[128], text[1024], temp[128];
 	KeyValues BossKV = GetCharacterKVEx(bossIndex);
 	int currentPlaying = 0, maxHealth, speed, rageDamage, lives;
+	int pointPrice = cvarBossPlayedCount.IntValue, playerPoint = FF2BossCookie.GetSavedPlayedCount(client);
 
 	BossKV.Rewind();
 	GetCharacterName(BossKV, realBossName, MAX_NAME, client);
@@ -787,7 +837,11 @@ void ViewBossInfo(int client, int bossIndex)
 	// TODO: Rule 적용
 	Format(temp, sizeof(temp), "%d", bossIndex);
 	Format(text, sizeof(text), "%t", "FF2Boss Info Select Boss");
-	menu.AddItem(temp, text);
+
+	if(pointPrice > 0)
+		Format(text, sizeof(text), "%s (%t)", text, "FF2Boss Info Select Boss (Played Point)", playerPoint, playerPoint - pointPrice, pointPrice);
+
+	menu.AddItem(temp, text, (pointPrice > playerPoint) ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
 
 	Format(text, sizeof(text), "%t", "FF2Boss Info View Description");
 	menu.AddItem(temp, text);
@@ -847,6 +901,9 @@ public int BossInfo_Handler(Menu menu, MenuAction action, int client, int select
 			{
 				case BossInfo_Select:
 				{
+					int pointPrice = cvarBossPlayedCount.IntValue, playerPoint = FF2BossCookie.GetSavedPlayedCount(client);
+					FF2BossCookie.SetSavedPlayedCount(client, playerPoint - pointPrice);
+					
 					GetCharacterName(BossKV, Incoming[client], MAX_NAME, 0);
 					SelectBoss(client, Incoming[client], bossIndex);
 				}
