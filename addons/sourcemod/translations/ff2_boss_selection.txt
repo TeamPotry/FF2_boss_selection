@@ -5,6 +5,16 @@
         "en"    "In-game only"
     }
 
+    "FF2Boss Loading PlayerData"
+    {
+        "en"    "Loading data.. Please wait."
+    }
+
+    "FF2Boss Playing Before Load PlayerData"
+    {
+        "en"    "You are became boss before your setting is loading."
+    }
+
     "FF2Boss Can't change while playing boss."
     {
         "en"    "You can not change boss while playing boss."
@@ -74,6 +84,17 @@
     "FF2Boss Info Select Boss"
     {
         "en"    "Select This"
+    }
+
+    "FF2Boss Info Select Boss (Played Point)"
+    {
+        "#format"   "{1:d},{2:d},{3:d}"
+        "en"        "Point: {1} -> {2}(-{3})"
+    }
+
+    "FF2Boss Not Enough Played Point"
+    {
+        "en"        "Not enough point."
     }
 
     "FF2Boss Info View Description"

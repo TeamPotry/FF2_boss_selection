@@ -5,6 +5,16 @@
         "ko"    "게임 안에서만 사용하실 수 있습니다."
     }
 
+    "FF2Boss Loading PlayerData"
+    {
+        "ko"    "데이터 로딩 중입니다. 잠시만 기다려주세요.."
+    }
+
+    "FF2Boss Playing Before Load PlayerData"
+    {
+        "ko"    "보스 설정을 불러오기 이전에 보스가 되었습니다."
+    }
+
     "FF2Boss Can't change while playing boss"
     {
         "ko"    "보스로 플레이하고 있을 때는 바꿀 수 없습니다."
@@ -74,6 +84,17 @@
     "FF2Boss Info Select Boss"
     {
         "ko"    "이 보스 선택"
+    }
+
+    "FF2Boss Info Select Boss (Played Point)"
+    {
+        "#format"   "{1:d},{2:d},{3:d}"
+        "ko"        "포인트 사용 시: {1} -> {2}(-{3})"
+    }
+
+    "FF2Boss Not Enough Played Point"
+    {
+        "ko"        "포인트가 부족합니다."
     }
 
     "FF2Boss Info View Description"
