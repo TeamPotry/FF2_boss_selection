@@ -339,7 +339,7 @@ public Action OnRoundStart(Event event, const char[] name, bool dontBroadcast)
 public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
 	int attacker = GetClientOfUserId(event.GetInt("attacker")), client = GetClientOfUserId(event.GetInt("userid"));
-	if(!IsValidClient(client) || !IsValidClient(client)
+	if(!IsValidClient(client) || !IsValidClient(attacker)
 	|| IsFakeClient(attacker) || IsFakeClient(client)) 	return Plugin_Continue;
 	else if(!IsBoss(attacker))						 	return Plugin_Continue;
 
