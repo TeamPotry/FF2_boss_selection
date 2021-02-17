@@ -15,11 +15,6 @@
         "en"    "You are became boss before your setting is loading."
     }
 
-    "FF2Boss Can't change while playing boss."
-    {
-        "en"    "You can not change boss while playing boss."
-    }
-
     "FF2Boss Cant Chosse This Now"
     {
         "en"    "Currently unselectable"

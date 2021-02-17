@@ -15,11 +15,6 @@
         "ko"    "보스 설정을 불러오기 이전에 보스가 되었습니다."
     }
 
-    "FF2Boss Can't change while playing boss"
-    {
-        "ko"    "보스로 플레이하고 있을 때는 바꿀 수 없습니다."
-    }
-
     "FF2Boss Cant Chosse This Now"
     {
         "ko"    "현재 선택 불가"
