@@ -512,19 +512,18 @@ public Action FF2_OnAddQueuePoints(int add_points[MAXPLAYERS+1])
 {
 	for (int client = 1; client <= MaxClients; client++)
 	{
-		if(IsValidClient(client) && !IsBoss(client) && AreClientCookiesCached(client))
-		{
-			if(!FF2BossCookie.IsPlayBoss(client))
-			{
-				int queuepoints = FF2BossCookie.GetSavedQueuePoints(client);
-				if(FF2_GetQueuePoints(client) > 0)
-				{
-					FF2BossCookie.SetSavedQueuePoints(client, queuepoints+FF2_GetQueuePoints(client));
-				}
+		if(!IsValidClient(client) || !AreClientCookiesCached(client))	continue;
 
-				add_points[client] = 0;
-				FF2_SetQueuePoints(client, -1);
+		if(!FF2BossCookie.IsPlayBoss(client))
+		{
+			int queuepoints = FF2BossCookie.GetSavedQueuePoints(client);
+			if(FF2_GetQueuePoints(client) > 0)
+			{
+				FF2BossCookie.SetSavedQueuePoints(client, queuepoints+FF2_GetQueuePoints(client));
 			}
+
+			add_points[client] = 0;
+			FF2_SetQueuePoints(client, -1);
 
 			LogMessage("%N의 대기열 포인트: %d, 저장된 대기열포인트: %d", client, FF2_GetQueuePoints(client), FF2BossCookie.GetSavedQueuePoints(client));
 		}
