@@ -987,7 +987,7 @@ public int BossDescription_Handler(Menu menu, MenuAction action, int client, int
 	SetGlobalTransTarget(client);
 	char text[4];
 
-	GetMenuItem(menu, selection, text, sizeof(text));
+	GetMenuItem(menu, 0, text, sizeof(text));
 	int bossIndex = StringToInt(text);
 
 	switch(action)
