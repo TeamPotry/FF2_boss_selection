@@ -524,8 +524,6 @@ public Action FF2_OnAddQueuePoints(int add_points[MAXPLAYERS+1])
 
 			add_points[client] = 0;
 			FF2_SetQueuePoints(client, -1);
-
-			LogMessage("%N의 대기열 포인트: %d, 저장된 대기열포인트: %d", client, FF2_GetQueuePoints(client), FF2BossCookie.GetSavedQueuePoints(client));
 		}
 	}
 	return Plugin_Changed;
@@ -898,7 +896,7 @@ public int BossInfo_Handler(Menu menu, MenuAction action, int client, int select
 				{
 					int pointPrice = cvarBossPlayedCount.IntValue, playerPoint = FF2BossCookie.GetSavedPlayedCount(client);
 					FF2BossCookie.SetSavedPlayedCount(client, playerPoint - pointPrice);
-					
+
 					GetCharacterName(BossKV, Incoming[client], MAX_NAME, 0);
 					SelectBoss(client, Incoming[client], bossIndex);
 				}
@@ -1075,6 +1073,12 @@ void SelectBoss(int client, char[] bossName, int bossIndex = -1)
 				return Plugin_Continue;
 			}
 		}
+
+		char bossName[64];
+		FF2BossCookie.GetSavedIncoming(client, bossName, sizeof(bossName));
+		LogMessage("%N의 대기열 포인트: %d, 저장된 대기열포인트: %d", client, FF2_GetQueuePoints(client), FF2BossCookie.GetSavedQueuePoints(client));
+		LogMessage("%N의 현재 보스: %s, 저장된 보스: %s", client, Incoming[client], bossName);
+
 		strcopy(characterName, sizeof(Incoming[]), Incoming[client]);
 		return Plugin_Changed;
 	}
