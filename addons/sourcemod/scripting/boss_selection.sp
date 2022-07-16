@@ -759,7 +759,8 @@ public Command_SetMyBossH(Handle menu, MenuAction action, int client, int item)
 				}
 				case 1:
 				{
-					FF2BossCookie.SetSavedQueuePoints(client, FF2_GetQueuePoints(client));
+					if(FF2_GetQueuePoints(client) >= 0)
+						FF2BossCookie.SetSavedQueuePoints(client, FF2_GetQueuePoints(client));
 					CReplyToCommand(client, "{olive}[FF2]{default} %t", "FF2Boss Dont Play Boss");
 				}
 				default:
