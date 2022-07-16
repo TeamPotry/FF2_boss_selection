@@ -10,7 +10,7 @@ jobs:
         sm-version: [ '1.10.x' ]
 
     name: SM version ${{ matrix.sm-version }}
-    steps:        
+    steps:
       - name: Setup SourceMod
         uses: rumblefrog/setup-sp@master
         with:
@@ -18,20 +18,22 @@ jobs:
 
       - name: Setup Source
         uses: actions/checkout@master
-      
+
       - name: Setup Include
         working-directory: addons/sourcemod/scripting
-        run: |             
+        run: |
+          mkdir ./include/ff2_modules
           wget "https://raw.githubusercontent.com/TeamPotry/FF2_Fork/master/addons/sourcemod/scripting/include/freak_fortress_2.inc" -P include
-          wget "https://raw.githubusercontent.com/TeamPotry/FF2_Fork/master/addons/sourcemod/scripting/include/ff2_potry.inc" -P include
           wget "http://www.doctormckay.com/download/scripting/include/morecolors.inc" -P include
+
+          wget "https://raw.githubusercontent.com/TeamPotry/FF2_Fork/master/addons/sourcemod/scripting/include/ff2_modules/general.inc" -P include/ff2_modules
 
  #     - name: Compile for 1.0
  #       working-directory: addons/sourcemod/scripting
  #       run: |
  #         mkdir build
  #         spcomp -iinclude boss_selection.sp -o build/boss_selection_v1.smx
-          
+
       - name: Compile
         working-directory: addons/sourcemod/scripting
         run: |
@@ -43,4 +45,3 @@ jobs:
         with:
           name: Plugin
           path: addons/sourcemod/scripting/build
-      

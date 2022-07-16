@@ -5,7 +5,7 @@
 #include <clientprefs>
 ///
 #include <freak_fortress_2>
-#tryinclude <ff2_potry>
+#tryinclude <ff2_modules/general>
 ///
 #include <ff2_boss_selection>
 
@@ -280,7 +280,7 @@ public void OnPluginStart()
 	FF2_GetFF2Version(FF2Version);
 	if(FF2Version[0] == 2)
 	{
-		#if !defined _ff2_potry_included
+		#if !defined _ff2_fork_general_included
 			SetFailState("FF2 v2.0.0 is need ff2_potry.inc!");
 		#endif
 	}
@@ -386,7 +386,7 @@ public Action Listener_Say(int client, const char[] command, int argc)
 
 	return Plugin_Continue;
 }
-#if !defined _ff2_potry_included
+#if !defined _ff2_fork_general_included
 	public Action FF2_OnLoadCharacterSet(int &charSetNum, char[] charSetName)
 	{
 		strcopy(g_strCurrentCharacter, sizeof(g_strCurrentCharacter), charSetName);
@@ -551,7 +551,7 @@ public Action FF2_OnCheckSelectRules(int client, int characterIndex, const char[
 	*/
 	if(StrEqual(ruleName, "blocked"))	return Plugin_Handled;
 
-#if defined _ff2_potry_included
+#if defined _ff2_fork_general_included
 	if(StrEqual(ruleName, "creator"))
 	{
 		int flags = FF2_GetBossCreatorFlags(authId, characterIndex, true);
@@ -802,7 +802,7 @@ void ViewBossInfo(int client, int bossIndex)
 		}
 	}
 
-	#if !defined _ff2_potry_included
+	#if !defined _ff2_fork_general_included
 		maxHealth = ParseFormula(bossIndex, "health_formula", RoundFloat(Pow((760.8+float(currentPlaying))*(float(currentPlaying)-1.0), 1.0341)+2046.0));
 		speed = BossKV.GetNum("maxspeed", 340);
 		rageDamage = BossKV.GetNum("ragedamage", 1900);
@@ -933,7 +933,7 @@ void ViewBossDescription(int client, int bossIndex)
 	GetLanguageInfo(GetClientLanguage(client), langId, 4);
 	GetLanguageInfo(GetServerLanguage(), serverLangId, 4);
 
-	#if !defined _ff2_potry_included
+	#if !defined _ff2_fork_general_included
 		Format(text, sizeof(text), "description_%s", langId);
 		BossKV.GetString(text, text, sizeof(text), "");
 
@@ -1041,7 +1041,7 @@ void SelectBoss(int client, char[] bossName, int bossIndex = -1)
 	}
 }
 
-#if !defined _ff2_potry_included
+#if !defined _ff2_fork_general_included
 	public Action FF2_OnSpecialSelected(int boss, int &character, char[] characterName, bool preset)
 #else
 	public Action FF2_OnBossSelected(int boss, int &character, char[] characterName, bool preset)
@@ -1119,7 +1119,7 @@ stock int FindBossIndexByName(const char[] bossName)
 
 KeyValues GetCharacterKVEx(int bossIndex)
 {
-	#if !defined _ff2_potry_included
+	#if !defined _ff2_fork_general_included
 		return view_as<KeyValues>(FF2_GetSpecialKV(bossIndex, true));
 	#else
 		return FF2_GetCharacterKV(bossIndex);
