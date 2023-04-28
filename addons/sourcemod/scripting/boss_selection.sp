@@ -251,12 +251,13 @@ public int Native_AdditionalInfoMenu_Create(Handle plugin, int numParams)
 	return view_as<int>(array);
 }
 
-public int Native_ViewInfoMenu(Handle plugin, int numParams)
+public /*void*/int Native_ViewInfoMenu(Handle plugin, int numParams)
 {
 	ViewBossInfo(GetNativeCell(1), GetNativeCell(2));
+	return 0;
 }
 
-public int Native_AddInfoMenu(Handle plugin, int numParams)
+public /*void*/int Native_AddInfoMenu(Handle plugin, int numParams)
 {
 	char translationName[128], functionName[128];
 	GetNativeString(1, translationName, 128);
@@ -264,6 +265,8 @@ public int Native_AddInfoMenu(Handle plugin, int numParams)
 
 	AdditionalInfoMenu item = AdditionalInfoMenu.Create(translationName, functionName);
 	AdditionalInfoMenuList.Push(item);
+
+	return 0;
 }
 
 public void OnPluginStart()
@@ -325,6 +328,8 @@ public Action OnRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	if(RotationIndexArray == null)
 		ResetRotationArray(g_strCurrentCharacter);
+
+	return Plugin_Continue;
 }
 
 public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
@@ -912,6 +917,8 @@ public int BossInfo_Handler(Menu menu, MenuAction action, int client, int select
 			}
 		}
 	}
+
+	return 0;
 }
 
 void ViewBossDescription(int client, int bossIndex)
@@ -1005,6 +1012,8 @@ public int BossDescription_Handler(Menu menu, MenuAction action, int client, int
 			}
 		}
 	}
+
+	return 0;
 }
 
 void SelectBoss(int client, char[] bossName, int bossIndex = -1)
