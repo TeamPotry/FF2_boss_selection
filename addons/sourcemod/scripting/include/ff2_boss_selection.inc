@@ -13,6 +13,6 @@ native void FF2Selection_AddInfoMenu(const char[] itemName, const char[] functio
 */
 forward Action FF2_OnCheckSelectRules(int client, int characterIndex, const char[] ruleName, const char[] value);
 
-forward void FF2Selection_InfoMenuReady();
+forward void FF2Selection_InfoMenuReady(int client, const int bossIndex);
 
 forward void FF2Selection_OnInfoMenuCreated(int client, const char[] functionName, const int bossIndex);

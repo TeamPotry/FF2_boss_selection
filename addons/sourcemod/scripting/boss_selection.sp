@@ -224,7 +224,7 @@ methodmap FF2BossCookie {
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
 {
 	OnCheckSelectRules = CreateGlobalForward("FF2_OnCheckSelectRules", ET_Hook, Param_Cell, Param_Cell, Param_String, Param_String); // Client, characterIndex, Rule String, value;
-	InfoMenuReady = CreateGlobalForward("FF2Selection_InfoMenuReady", ET_Ignore);
+	InfoMenuReady = CreateGlobalForward("FF2Selection_InfoMenuReady", ET_Ignore, Param_Cell, Param_Cell);
 	InfoMenuCreated = CreateGlobalForward("FF2Selection_OnInfoMenuCreated", ET_Ignore, Param_Cell, Param_String, Param_Cell);
 
 	CreateNative("AdditionalInfoMenu.Create", Native_AdditionalInfoMenu_Create);
@@ -304,11 +304,13 @@ public void OnPluginStart()
 	RegPluginLibrary("ff2_boss_selection");
 }
 
-void ReloadAdditionalInfoMenuList()
+void ReloadAdditionalInfoMenuList(int client, int bossIndex)
 {
 	AdditionalInfoMenuList.Resize(0);
 
 	Call_StartForward(InfoMenuReady);
+	Call_PushCell(client);
+	Call_PushCell(bossIndex);
 	Call_Finish();
 }
 
@@ -835,7 +837,7 @@ void ViewBossInfo(int client, int bossIndex)
 	Format(text, sizeof(text), "%t", "FF2Boss Info View Description");
 	menu.AddItem(temp, text);
 
-	ReloadAdditionalInfoMenuList();
+	ReloadAdditionalInfoMenuList(client, bossIndex);
 	int length = AdditionalInfoMenuList.Length;
 	AdditionalInfoMenu infoMenu;
 	for(int loop = 0; loop < length; loop++)
@@ -959,7 +961,7 @@ void ViewBossDescription(int client, int bossIndex)
 	menu.AddItem(temp, text);
 	menu.AddItem(temp, text, ITEMDRAW_IGNORE);
 
-	ReloadAdditionalInfoMenuList();
+	ReloadAdditionalInfoMenuList(client, bossIndex);
 	int length = AdditionalInfoMenuList.Length;
 	AdditionalInfoMenu infoMenu;
 	for(int loop = 0; loop < length; loop++)
