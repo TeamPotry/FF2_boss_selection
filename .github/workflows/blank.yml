@@ -43,5 +43,5 @@ jobs:
       - name: Upload plugin artifact
         uses: actions/upload-artifact@master
         with:
-          name: Plugin
+          name: SM ${{ matrix.sm-version }}
           path: addons/sourcemod/scripting/build
