@@ -230,7 +230,6 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
 	CreateNative("AdditionalInfoMenu.Create", Native_AdditionalInfoMenu_Create);
 
 	CreateNative("FF2Selection_ViewInfoMenu", Native_ViewInfoMenu);
-	CreateNative("FF2Selection_LoadTranslations", Native_LoadTranslations);
 	CreateNative("FF2Selection_AddInfoMenu", Native_AddInfoMenu);
 
 	MarkNativeAsOptional("FF2_GetSpecialKV");
@@ -255,14 +254,6 @@ public int Native_AdditionalInfoMenu_Create(Handle plugin, int numParams)
 public int Native_ViewInfoMenu(Handle plugin, int numParams)
 {
 	ViewBossInfo(GetNativeCell(1), GetNativeCell(2));
-}
-
-public int Native_LoadTranslations(Handle plugin, int numParams)
-{
-	char file[PLATFORM_MAX_PATH];
-	GetNativeString(1, file, PLATFORM_MAX_PATH);
-
-	LoadTranslations(file);
 }
 
 public int Native_AddInfoMenu(Handle plugin, int numParams)
