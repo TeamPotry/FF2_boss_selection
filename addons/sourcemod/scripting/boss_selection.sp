@@ -42,11 +42,15 @@ enum
 {
 	InfoMenu_ItemName = 0,
 	// InfoMenu_PluginHandle,
-	InfoMenu_FunctionName
+	InfoMenu_FunctionName,
+	InfoMenu_ItemFlags,
+	// InfoMenu_Info,
+
+	InfoMenuCount_Max
 };
 
 methodmap AdditionalInfoMenu < ArrayList {
-	public static native AdditionalInfoMenu Create(const char[] itemName, const char[] functionName);
+	public static native AdditionalInfoMenu Create(const char[] itemName, const char[] functionName, int itemFlags = ITEMDRAW_DEFAULT);
 
 	public void GetItemName(char[] itemName, int buffer)
 	{
@@ -67,7 +71,27 @@ methodmap AdditionalInfoMenu < ArrayList {
 	{
 		this.SetString(InfoMenu_FunctionName, functionName);
 	}
+
+	property int ItemFlags {
+		public get() {
+			return this.Get(InfoMenu_ItemFlags);
+		}
+		public set(int flags) {
+			this.Set(InfoMenu_ItemFlags, flags);
+		}
+	}
+
 /*
+	public void GetInfo(char[] info, int buffer)
+	{
+		this.GetString(InfoMenu_Info, info, buffer);
+	}
+
+	public void SetInfo(const char[] info)
+	{
+		this.SetString(InfoMenu_Info, info);
+	}
+
 	property Handle PluginHandle {
 		public get() {
 			return this.Get(InfoMenu_PluginHandle);
@@ -239,6 +263,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
 public int Native_AdditionalInfoMenu_Create(Handle plugin, int numParams)
 {
 	char itemName[128], functionName[128];
+	// char info[128];
 
 	AdditionalInfoMenu array = view_as<AdditionalInfoMenu>(new ArrayList(128));
 
@@ -247,6 +272,12 @@ public int Native_AdditionalInfoMenu_Create(Handle plugin, int numParams)
 
 	GetNativeString(2, functionName, 128);
 	array.PushString(functionName);
+
+	int itemFlags = GetNativeCell(3);
+	array.Push(itemFlags);
+
+	// GetNativeString(4, info, 128);
+	// array.PushString(info);
 
 	return view_as<int>(array);
 }
@@ -263,7 +294,9 @@ public /*void*/int Native_AddInfoMenu(Handle plugin, int numParams)
 	GetNativeString(1, translationName, 128);
 	GetNativeString(2, functionName, 128);
 
-	AdditionalInfoMenu item = AdditionalInfoMenu.Create(translationName, functionName);
+	int itemFlags = GetNativeCell(3);
+
+	AdditionalInfoMenu item = AdditionalInfoMenu.Create(translationName, functionName, itemFlags);
 	AdditionalInfoMenuList.Push(item);
 
 	return 0;
@@ -838,7 +871,7 @@ void ViewBossInfo(int client, int bossIndex)
 	menu.AddItem(temp, text);
 
 	ReloadAdditionalInfoMenuList(client, bossIndex);
-	int length = AdditionalInfoMenuList.Length;
+	int length = AdditionalInfoMenuList.Length, flags;
 	AdditionalInfoMenu infoMenu;
 	for(int loop = 0; loop < length; loop++)
 	{
@@ -846,9 +879,10 @@ void ViewBossInfo(int client, int bossIndex)
 
 		infoMenu.GetItemName(text, 128);
 		infoMenu.GetFunctionName(temp, 128);
+		flags = infoMenu.ItemFlags;
 
 		Format(text, sizeof(text), "%s", text);
-		menu.AddItem(temp, text);
+		menu.AddItem(temp, text, flags);
 	}
 
 	menu.ExitButton = true;
@@ -962,7 +996,7 @@ void ViewBossDescription(int client, int bossIndex)
 	menu.AddItem(temp, text, ITEMDRAW_IGNORE);
 
 	ReloadAdditionalInfoMenuList(client, bossIndex);
-	int length = AdditionalInfoMenuList.Length;
+	int length = AdditionalInfoMenuList.Length, flags;
 	AdditionalInfoMenu infoMenu;
 	for(int loop = 0; loop < length; loop++)
 	{
@@ -971,8 +1005,10 @@ void ViewBossDescription(int client, int bossIndex)
 		infoMenu.GetItemName(text, 128);
 		infoMenu.GetFunctionName(temp, 128);
 
+		flags = infoMenu.ItemFlags;
+
 		Format(text, sizeof(text), "%s", text);
-		menu.AddItem(temp, text);
+		menu.AddItem(temp, text, flags);
 	}
 
 	menu.ExitButton = true;
