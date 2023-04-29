@@ -12,14 +12,11 @@
 #define PLUGIN_VERSION "2(1.0)"
 #define MAX_NAME 64
 
-int g_iChatCommand;
 int FF2Version[3];
 
 char g_strCurrentCharacter[64];
 char Incoming[MAXPLAYERS+1][64];
-char g_strChatCommand[42][50];
 
-ConVar g_hCvarChatCommand;
 ConVar cvarBossPlayedCount;
 
 Handle g_hPlayedCountCookie;
@@ -312,21 +309,17 @@ public void OnPluginStart()
 		#endif
 	}
 
-	g_hCvarChatCommand = CreateConVar("ff2_bossselection_chatcommand", "ff2boss,boss,보스,보스선택");
 	cvarBossPlayedCount = CreateConVar("ff2_bossselection_playpoint", "0", "0 - Disable, else: enabled, This cvar value is will be the price of select bosses.", _, true, 0.0, false);
+
+	RegConsoleCmd("ff2boss", Command_SetMyBoss, "Set my FF2 boss!");
 
 	HookEvent("teamplay_round_start", OnRoundStart);
 	HookEvent("player_death", OnPlayerDeath);
-
-	AddCommandListener(Listener_Say, "say");
-	AddCommandListener(Listener_Say, "say_team");
 
 	LoadTranslations("common.phrases");
 	LoadTranslations("core.phrases");
 	LoadTranslations("ff2_boss_selection");
 
-	ChangeChatCommand();
-	g_hCvarChatCommand.AddChangeHook(CvarChange);
 	// cvarBossPlayedCount.AddChangeHook(CvarChange);
 
 	RotationIndexArray = new ArrayList();
@@ -349,8 +342,6 @@ void ReloadAdditionalInfoMenuList(int client, int bossIndex)
 
 public void OnMapStart()
 {
-	ChangeChatCommand();
-
 	if(RotationInfo != null)
 		delete RotationInfo;
 	RotationInfo = GetRotationInfo();
@@ -378,45 +369,6 @@ public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	return Plugin_Continue;
 }
 
-public Action Listener_Say(int client, const char[] command, int argc)
-{
-	if(!IsValidClient(client)) return Plugin_Continue;
-
-	char strChat[100];
-	char temp[2][64];
-	GetCmdArgString(strChat, sizeof(strChat));
-
-	int start;
-	bool slient = false;
-
-	if(strChat[start] == '"') start++;
-	if(strChat[start] == '!' || strChat[start] == '/')
-	{
-		slient = strChat[start] == '/';
-		start++;
-	}
-	strChat[strlen(strChat)-1] = '\0';
-	ExplodeString(strChat[start], " ", temp, 2, 64, true);
-
-	if(temp[0][0] == '\0' || temp[0][0] == ' ')
-		return Plugin_Continue;
-
-	for (int i=0; i<=g_iChatCommand; i++)
-	{
-		if(StrEqual(temp[0], g_strChatCommand[i], true))
-		{
-			if(temp[1][0] != '\0')
-			{
-				return slient ? Plugin_Handled : Plugin_Continue;
-			}
-
-			Command_SetMyBoss(client, 0);
-			return slient ? Plugin_Handled : Plugin_Continue;
-		}
-	}
-
-	return Plugin_Continue;
-}
 #if !defined _ff2_fork_general_included
 	public Action FF2_OnLoadCharacterSet(int &charSetNum, char[] charSetName)
 	{
@@ -1123,25 +1075,6 @@ void SelectBoss(int client, char[] bossName, int bossIndex = -1)
 		return Plugin_Changed;
 	}
 	return Plugin_Continue;
-}
-
-public void CvarChange(ConVar cvar, const char[] oldValue, const char[] newValue)
-{
-	ChangeChatCommand();
-}
-
-void ChangeChatCommand()
-{
-	g_iChatCommand = 0;
-
-	char cvarV[MAX_NAME];
-	GetConVarString(g_hCvarChatCommand, cvarV, sizeof(cvarV));
-
-	for (int i=0; i<ExplodeString(cvarV, ",", g_strChatCommand, sizeof(g_strChatCommand), sizeof(g_strChatCommand[])); i++)
-	{
-		LogMessage("[FF2boss] Added chat command: %s", g_strChatCommand[i]);
-		g_iChatCommand++;
-	}
 }
 
 stock int FindBossIndexByName(const char[] bossName)
