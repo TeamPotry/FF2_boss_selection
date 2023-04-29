@@ -995,6 +995,7 @@ void ViewBossDescription(int client, int bossIndex)
 	menu.AddItem(temp, text);
 	menu.AddItem(temp, text, ITEMDRAW_IGNORE);
 
+/*
 	ReloadAdditionalInfoMenuList(client, bossIndex);
 	int length = AdditionalInfoMenuList.Length, flags;
 	AdditionalInfoMenu infoMenu;
@@ -1010,6 +1011,7 @@ void ViewBossDescription(int client, int bossIndex)
 		Format(text, sizeof(text), "%s", text);
 		menu.AddItem(temp, text, flags);
 	}
+*/
 
 	menu.ExitButton = true;
 	menu.ExitBackButton = true;
