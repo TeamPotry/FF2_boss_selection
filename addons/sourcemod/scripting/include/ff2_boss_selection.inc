@@ -7,7 +7,7 @@
 native void FF2Selection_ViewInfoMenu(int client, int bossIndex);
 
 native void FF2Selection_LoadTranslations(const char[] file);
-native void FF2Selection_AddInfoMenu(const char[] translationName, const char[] functionName);
+native void FF2Selection_AddInfoMenu(const char[] itemName, const char[] functionName);
 
 /*
     Called when client called

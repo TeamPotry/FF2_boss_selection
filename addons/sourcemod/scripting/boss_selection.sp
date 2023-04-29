@@ -40,22 +40,22 @@ public Plugin:myinfo = {
 
 enum
 {
-	InfoMenu_TranslationName = 0,
+	InfoMenu_ItemName = 0,
 	// InfoMenu_PluginHandle,
 	InfoMenu_FunctionName
 };
 
 methodmap AdditionalInfoMenu < ArrayList {
-	public static native AdditionalInfoMenu Create(const char[] translationName, const char[] functionName);
+	public static native AdditionalInfoMenu Create(const char[] itemName, const char[] functionName);
 
-	public void GetTranslationName(char[] translationName, int buffer)
+	public void GetItemName(char[] itemName, int buffer)
 	{
-		this.GetString(InfoMenu_TranslationName, translationName, buffer);
+		this.GetString(InfoMenu_ItemName, itemName, buffer);
 	}
 
-	public void SetTranslationName(const char[] translationName)
+	public void SetItemName(const char[] itemName)
 	{
-		this.SetString(InfoMenu_TranslationName, translationName);
+		this.SetString(InfoMenu_ItemName, itemName);
 	}
 
 	public void GetFunctionName(char[] functionName, int buffer)
@@ -239,12 +239,12 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, err_max)
 
 public int Native_AdditionalInfoMenu_Create(Handle plugin, int numParams)
 {
-	char translationName[128], functionName[128];
+	char itemName[128], functionName[128];
 
 	AdditionalInfoMenu array = view_as<AdditionalInfoMenu>(new ArrayList(128));
 
-	GetNativeString(1, translationName, 128);
-	array.PushString(translationName);
+	GetNativeString(1, itemName, 128);
+	array.PushString(itemName);
 
 	GetNativeString(2, functionName, 128);
 	array.PushString(functionName);
@@ -846,10 +846,10 @@ void ViewBossInfo(int client, int bossIndex)
 	{
 		infoMenu = AdditionalInfoMenuList.Get(loop);
 
-		infoMenu.GetTranslationName(text, 128);
+		infoMenu.GetItemName(text, 128);
 		infoMenu.GetFunctionName(temp, 128);
 
-		Format(text, sizeof(text), "%t", text);
+		Format(text, sizeof(text), "%s", text);
 		menu.AddItem(temp, text);
 	}
 
@@ -968,10 +968,10 @@ void ViewBossDescription(int client, int bossIndex)
 	{
 		infoMenu = AdditionalInfoMenuList.Get(loop);
 
-		infoMenu.GetTranslationName(text, 128);
+		infoMenu.GetItemName(text, 128);
 		infoMenu.GetFunctionName(temp, 128);
 
-		Format(text, sizeof(text), "%t", text);
+		Format(text, sizeof(text), "%s", text);
 		menu.AddItem(temp, text);
 	}
 
